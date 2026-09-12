@@ -10,18 +10,21 @@ AgentIQ is a premium dark agricultural intelligence dashboard for monitoring man
 - `weather_sensors`: IST timestamp, normalized temperature, rainfall, and humidity.
 - `transport_logistics`: cleaned route timestamps, warehouse, transit, distance, vehicle, driver, and quality flag.
 
-The MVP uses a typed, local `frontend/src/data/mockData.ts` dataset calibrated to the repository's cleaned outputs. It is labeled `Demo data · API integration pending` and keeps the source schema ready for a future data service.
+All dashboard figures come from the five real cleaned datasets (no mock data remains). `backend/lib/datasets.py` loads them GitHub-first (`aarshdeepkkaur/AgentIQ-Datathon/data/cleaned`) with the user-uploaded copies bundled in `backend/data/cleaned/` as an offline fallback, cached in memory for 30 minutes. `backend/lib/analytics.py` aggregates them with pandas into `GET /api/dashboard?crop=<name>` (Pydantic models in `backend/models/dashboard.py`, mirrored by `frontend/src/data/types.ts`): per-crop summary (modal, MSP, gap, arrivals, below-MSP %, transit, delay rate, 30-day trend), 57 per-mandi rows (per-mandi price/arrival/transit averages, dominant warehouse, weather on latest arrival day, risk, district-anchored lat/lon), daily/weekly/monthly price trend, weekly weather series, warehouse performance, above/below-MSP distribution, network totals, and data-quality percentages. Crop aliases (Chawal/Basmati/Dhaan→Rice, Makki→Maize, Sarso→Mustard, Narma→Cotton, Ganne→Sugarcane) are merged; only the six real crops are selectable. Unknown crops return 404.
 
-The live sync enhancement calls `GET /api/data-sync`, which fetches and aggregates the public cleaned CSVs from `aarshdeepkkaur/AgentIQ-Datathon` with a local fallback if GitHub is unavailable. The current crop profile, selected mandi volumes, and warehouse transit values merge live results without blocking first render.
+Rainfall↔arrivals correlation is reported two ways: pipeline method (arrival days anchored, missing rain = 0 → ≈0.57) and overlapping-days only (≈0.05). Both are shown in the data-quality footnote and weather chart.
+
+`GET /api/data-sync` (legacy summary endpoint) still exists but the UI and agent no longer depend on it.
 
 ## Key flows
 1. Choose a crop from the control center; KPI values, map, hero inspector, insights, charts, and table update.
 2. Filter by state, mandi, risk, and search; the registry and insight views update without a page reload.
 3. Click an orbit pin or mandi row to update the selected hub inspector.
-4. Open Ask AgentIQ from the floating action, sidebar, or footer; submit a suggested or typed question for a clearly labeled mocked response.
+4. Open Ask AgentIQ from the floating action, sidebar, or footer; submit a suggested or typed question for a grounded answer with evidence and an inline mini bar chart.
 5. Use the mobile menu to reach the same dashboard on narrow screens.
 6. Toggle Orbit view / Satellite view; both preserve the selected mandi and filtered row set.
-7. Ask AgentIQ sends the question and selected crop to `POST /api/agent/ask`; the FastAPI route grounds the answer in the synced GitHub CSV aggregates and returns evidence.
+7. Ask AgentIQ sends the question and selected crop to `POST /api/agent/ask`; the FastAPI route detects crop names and states (Punjab/Haryana/Uttar Pradesh) in the question, routes to msp-risk / route-health / weather-impact / crop-comparison, and answers per-mandi from the full datasets with evidence and `chart` points.
+8. Price trend has working D/W/M toggles; the mandi table sorts by any column and paginates 10 rows per page; state/mandi filter options are derived from the data; the loading and error states (with retry) cover the dashboard query.
 
 ## Auth and roles
 No authentication or gated roles are present in this demo MVP.

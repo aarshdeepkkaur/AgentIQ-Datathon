@@ -8,9 +8,16 @@ class AgentAskRequest(BaseModel):
     crop_name: str = Field(default="Wheat", min_length=1, max_length=40)
 
 
+class AgentChartPoint(BaseModel):
+    label: str
+    value: float
+    unit: str
+
+
 class AgentAnswer(BaseModel):
     answer: str
     intent: str
     source: str
     grounded_at: datetime
     evidence: list[str]
+    chart: list[AgentChartPoint] = []

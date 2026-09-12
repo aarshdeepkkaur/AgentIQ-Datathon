@@ -47,9 +47,9 @@ def test_agent_ask_route_health_from_warehouse_transit(client):
     assert resp.status_code == 200, resp.text[:300]
     body = resp.json()
     assert body["intent"] == "route-health", body
-    assert any("Fastest:" in e for e in body["evidence"]), body["evidence"]
-    assert any("Slowest:" in e for e in body["evidence"]), body["evidence"]
-    assert "warehouse_transit.csv" in " ".join(body["evidence"])
+    assert "lowest average transit" in body["answer"] and "slowest" in body["answer"], body["answer"]
+    assert "transport_cleaned.csv" in " ".join(body["evidence"])
+    assert body["chart"] and all(point["unit"] == "h" for point in body["chart"]), body["chart"]
 
 
 def test_agent_ask_weather_impact_from_cleaned_weather(client):
@@ -60,9 +60,9 @@ def test_agent_ask_weather_impact_from_cleaned_weather(client):
     assert resp.status_code == 200, resp.text[:300]
     body = resp.json()
     assert body["intent"] == "weather-impact", body
-    assert "correlation" in body["answer"]
-    assert any("correlation" in e for e in body["evidence"]), body["evidence"]
+    assert "correlates with arrivals" in body["answer"], body["answer"]
     assert "weather_cleaned.csv" in " ".join(body["evidence"])
+    assert body["chart"] and all(point["unit"] == "mm" for point in body["chart"]), body["chart"]
 
 
 def test_agent_ask_uses_selected_crop_context_not_stale_wheat(client):
@@ -77,6 +77,6 @@ def test_agent_ask_uses_selected_crop_context_not_stale_wheat(client):
     assert wheat_resp.status_code == 200 and maize_resp.status_code == 200
     wheat_body = wheat_resp.json()
     maize_body = maize_resp.json()
-    assert wheat_body["answer"].startswith("Wheat"), wheat_body["answer"]
-    assert maize_body["answer"].startswith("Maize"), maize_body["answer"]
+    assert "for Wheat" in wheat_body["answer"] and "Wheat modal" in wheat_body["answer"], wheat_body["answer"]
+    assert "for Maize" in maize_body["answer"] and "Maize modal" in maize_body["answer"], maize_body["answer"]
     assert wheat_body["answer"] != maize_body["answer"]
