@@ -1,0 +1,252 @@
+{
+  "project_name": "AgentIQ: Mandi-to-Market Supply Chain Optimizer",
+  "version": "1.0.0",
+  "app_type": "dashboard",
+  "theme": {
+    "default": "dark",
+    "theme_archetype": "ARCHETYPE_2_TACTICAL_AND_AGRITECH_FUSION",
+    "color_tokens": {
+      "background_primary": "#07111F",
+      "background_secondary": "#0B192C",
+      "card_bg_primary": "#102235",
+      "card_bg_secondary": "#172F3B",
+      "card_bg_elevated": "rgba(16, 34, 53, 0.85)",
+      "border_subtle": "rgba(105, 199, 245, 0.14)",
+      "border_highlight": "rgba(165, 243, 107, 0.35)",
+      "border_glass": "rgba(255, 255, 255, 0.08)",
+      "primary_green": "#A5F36B",
+      "secondary_green": "#65D68A",
+      "mint_glow": "#B8F7A1",
+      "msp_gold_yellow": "#F4C86B",
+      "risk_coral_red": "#FF8585",
+      "logistics_cyan_blue": "#69C7F5",
+      "text_primary": "#FFFFFF",
+      "text_secondary": "#E2E8F0",
+      "text_muted": "#8CA0B5",
+      "text_faint": "#4B6178"
+    },
+    "forbidden_colors": [
+      "#7351B7",
+      "#1B93A4"
+    ]
+  },
+  "typography": {
+    "font_family_heading": "'Geist Variable', 'IBM Plex Sans', -apple-system, sans-serif",
+    "font_family_body": "'Geist Variable', sans-serif",
+    "font_family_mono": "'Geist Mono Variable', 'IBM Plex Mono', monospace",
+    "font_banned_for_headings": [
+      "Inter",
+      "Roboto",
+      "Open Sans",
+      "Lato",
+      "Space Grotesk"
+    ],
+    "scale_rules": {
+      "h1_hero": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white",
+      "h2_section": "text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-white",
+      "h3_card": "text-lg sm:text-xl font-medium tracking-tight text-white",
+      "h4_widget": "text-base sm:text-lg font-medium text-slate-100",
+      "body": "text-sm sm:text-base text-slate-300 leading-relaxed",
+      "caption_micro": "text-xs uppercase tracking-widest text-[#8CA0B5] font-mono",
+      "kpi_value": "text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-mono text-white"
+    }
+  },
+  "layout_and_grids": {
+    "dashboard_mode": "MODE_B_HIGH_DENSITY_BENTO_WITH_CENTRAL_ORBIT",
+    "sidebar_width": "w-64 xl:w-72 hidden lg:flex flex-col fixed inset-y-0 left-0 bg-[#081522]/95 border-r border-[#69C7F5]/15 backdrop-blur-xl z-40",
+    "topbar_height": "h-16 fixed top-0 right-0 left-0 lg:left-64 xl:left-72 bg-[#07111F]/90 backdrop-blur-md border-b border-[#69C7F5]/15 z-30 px-6 flex items-center justify-between",
+    "main_content_wrapper": "pt-20 lg:pl-64 xl:pl-72 min-h-screen bg-[#07111F] text-slate-100 p-4 sm:p-6 lg:p-8 space-y-8",
+    "spacing_philosophy": "Generous interior card padding (p-5 to p-6). No border text collision. Gap-4 to gap-6 on widget grids.",
+    "grid_structure": {
+      "kpi_strip": "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4",
+      "central_stage": "grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch",
+      "central_orbit_col": "lg:col-span-7 xl:col-span-8",
+      "central_mandi_panel_col": "lg:col-span-5 xl:col-span-4",
+      "analytics_grid_two_col": "grid grid-cols-1 lg:grid-cols-2 gap-6",
+      "analytics_grid_three_col": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
+      "data_table_section": "w-full"
+    }
+  },
+  "component_hierarchy": [
+    {
+      "component_name": "SidebarNavigation",
+      "path": "/app/frontend/src/components/SidebarNavigation.jsx",
+      "purpose": "Left primary navigation with AgentIQ insignia, status pulse, nav routes, and datathon team badge",
+      "items": [
+        {"id": "overview", "label": "Overview", "icon": "LayoutDashboard"},
+        {"id": "mandi-analytics", "label": "Mandi Analytics", "icon": "Store"},
+        {"id": "crop-intelligence", "label": "Crop Intelligence", "icon": "Wheat"},
+        {"id": "logistics", "label": "Logistics & Fleet", "icon": "Truck"},
+        {"id": "weather", "label": "Weather Impact", "icon": "CloudRain"},
+        {"id": "risk", "label": "Risk & MSP Gaps", "icon": "AlertTriangle"},
+        {"id": "ai-agent", "label": "Ask AgentIQ", "icon": "Bot"},
+        {"id": "reports", "label": "Reports & Pipeline", "icon": "FileSpreadsheet"}
+      ]
+    },
+    {
+      "component_name": "HeaderFilterBar",
+      "path": "/app/frontend/src/components/HeaderFilterBar.jsx",
+      "purpose": "Sticky control center with Crop Pill Selector, Mandi Filter, State Filter, Date Range, Risk Filter, and Demo Data Disclaimer badge",
+      "crops_supported": ["Wheat", "Rice", "Maize", "Cotton", "Mustard", "Sugarcane", "Soybean", "Gram"]
+    },
+    {
+      "component_name": "KpiMetricStrip",
+      "path": "/app/frontend/src/components/KpiMetricStrip.jsx",
+      "purpose": "8 high-density tactile KPI cards calibrated directly to real cleaning pipeline outputs",
+      "metrics": [
+        {"key": "total_arrivals", "label": "Total Cleaned Arrivals", "baseline": "3.74M qtl", "tone": "#A5F36B", "badge": "25k rows parsed"},
+        {"key": "avg_modal_price", "label": "Avg Modal Price", "baseline": "₹3,797.82/qtl", "tone": "#69C7F5", "badge": "+2.1% vs MSP"},
+        {"key": "avg_msp", "label": "Benchmark MSP", "baseline": "₹3,719.78/qtl", "tone": "#F4C86B", "badge": "Govt floor"},
+        {"key": "below_msp_pct", "label": "Below MSP Records", "baseline": "40.16%", "tone": "#FF8585", "badge": "9,131 verified"},
+        {"key": "avg_transit", "label": "Avg Transit Time", "baseline": "12.99 hrs", "tone": "#69C7F5", "badge": "6 hubs"},
+        {"key": "delay_rate", "label": "Logistics Delay Rate (>24h)", "baseline": "0.28%", "tone": "#A5F36B", "badge": "10,400 trips"},
+        {"key": "weather_corr", "label": "Rainfall–Arrival Corr", "baseline": "0.54 r", "tone": "#B8F7A1", "badge": "275 days"},
+        {"key": "active_mandis", "label": "Active Mandis Monitored", "baseline": "57 Mandis", "tone": "#F4C86B", "badge": "MANDI001 leader"}
+      ]
+    },
+    {
+      "component_name": "AgriOrbitCentralVisual",
+      "path": "/app/frontend/src/components/AgriOrbitCentralVisual.jsx",
+      "purpose": "Interactive SVG Agri-Orbit Map with pulse nodes, radar rings, warehouse routes, animated transit pulses, and risk heat rings",
+      "features": [
+        "Interactive Mandi Pins with click-to-focus and hover micro-tooltips",
+        "Curved supply routes linking mandis (MANDI001, MANDI048, MANDI050, MANDI026, MANDI012) to destination warehouses",
+        "Animated glowing transit packets traveling along SVG bezier paths",
+        "Risk contour rings indicating below-MSP clusters or weather warnings",
+        "Orbit mode controls: All Mandis, High Volume Hubs, Below-MSP Distress, Weather Affected"
+      ]
+    },
+    {
+      "component_name": "HeroLandscapeCard",
+      "path": "/app/frontend/src/components/HeroLandscapeCard.jsx",
+      "purpose": "Static hero agricultural aerial landscape with dark overlay, integrated mandi telemetry card, and live sensor badge",
+      "image_url": "https://images.unsplash.com/photo-1781332151334-b9217e6d192e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwyfHxhZ3JpY3VsdHVyZSUyMGZpZWxkJTIwZHJvbmUlMjB2aWV3JTIwZGFyayUyMGdyZWVufGVufDB8fHx8MTc4OTIxNTIzMHww&ixlib=rb-4.1.0&q=85",
+      "overlay_rule": "bg-gradient-to-t from-[#102235] via-[#07111F]/60 to-transparent max opacity 50%"
+    },
+    {
+      "component_name": "SelectedMandiInspector",
+      "path": "/app/frontend/src/components/SelectedMandiInspector.jsx",
+      "purpose": "Deep-dive side inspection card showing real schema metrics for currently active/clicked mandi (Mandi ID, Name, District, State, Area acres, Top crop arrivals, Modal vs MSP delta)"
+    },
+    {
+      "component_name": "PriceMspAnalyticsChart",
+      "path": "/app/frontend/src/components/PriceMspAnalyticsChart.jsx",
+      "purpose": "Recharts visual comparing Modal Price vs Government MSP across selected crop timeline, shading distress zones where Modal < MSP"
+    },
+    {
+      "component_name": "ArrivalsAndVolumeChart",
+      "path": "/app/frontend/src/components/ArrivalsAndVolumeChart.jsx",
+      "purpose": "Bar and Area combined visualization for daily mandi arrivals, peak harvest windows, and farmer counts"
+    },
+    {
+      "component_name": "LogisticsTransitMatrix",
+      "path": "/app/frontend/src/components/LogisticsTransitMatrix.jsx",
+      "purpose": "Warehouse transit performance bar chart (12.87h - 13.08h baseline), distance correlation, and delay anomaly flags"
+    },
+    {
+      "component_name": "WeatherSensorsCorrelation",
+      "path": "/app/frontend/src/components/WeatherSensorsCorrelation.jsx",
+      "purpose": "Dual-axis scatter/line showing rainfall mm vs arrivals qtl (0.54 correlation) with temperature and humidity gauges"
+    },
+    {
+      "component_name": "MandiDataTable",
+      "path": "/app/frontend/src/components/MandiDataTable.jsx",
+      "purpose": "Sortable, searchable, filterable, paginated data table following exact mandi_master + arrivals + price schema with row selection"
+    },
+    {
+      "component_name": "AskAgentIqDrawer",
+      "path": "/app/frontend/src/components/AskAgentIqDrawer.jsx",
+      "purpose": "Interactive slide-over or floating AI supply chain assistant with preset domain questions and contextual responses labelled 'Demo response · API integration pending'"
+    },
+    {
+      "component_name": "DataQualityFootnote",
+      "path": "/app/frontend/src/components/DataQualityFootnote.jsx",
+      "purpose": "Honest, transparent datathon disclaimer explaining 41.6% NaN arrival handling, weather sensor unit gaps, and GitHub repo sync toggle"
+    }
+  ],
+  "image_urls": [
+    {
+      "category": "hero_agricultural_drone_overview",
+      "image_url": "https://images.unsplash.com/photo-1781332151334-b9217e6d192e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwyfHxhZ3JpY3VsdHVyZSUyMGZpZWxkJTIwZHJvbmUlMjB2aWV3JTIwZGFyayUyMGdyZWVufGVufDB8fHx8MTc4OTIxNTIzMHww&ixlib=rb-4.1.0&q=85",
+      "description": "High angle aerial drone view of lush contrasting agricultural parcels; used in HeroLandscapeCard and SelectedMandiInspector card header"
+    },
+    {
+      "category": "harvest_crop_detail",
+      "image_url": "https://images.unsplash.com/photo-1594842059196-5b6b8fa73187?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwxfHxmYXJtaW5nJTIwaGFydmVzdCUyMGNyb3BzJTIwd2hlYXQlMjBzdW5zZXR8ZW58MHx8fHwxNzg5MjE1MjMwfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Golden wheat ears close up during sunset; used in Crop Intelligence badge and agricultural summary card"
+    },
+    {
+      "category": "mechanized_farming_logistics",
+      "image_url": "https://images.unsplash.com/photo-1565647952915-9644fcd446a4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwyfHxmYXJtaW5nJTIwaGFydmVzdCUyMGNyb3BzJTIwd2hlYXQlMjBzdW5zZXR8ZW58MHx8fHwxNzg5MjE1MjMwfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Harvesting combine machine in golden field; used for logistics fleet telemetry highlight"
+    }
+  ],
+  "map_architecture_recommendation": {
+    "primary_decision": "SELF_CONTAINED_SVG_AGRI_ORBIT_MAP",
+    "rationale": "An SVG-based agri-orbit visual fulfills the user's specific reference requirement for circular radar orbits, glowing pulsing mandi nodes, animated logistics routes, and risk rings without heavy external tile server dependencies, token keys (e.g. Mapbox), or canvas WebGL crashes. Provide an optional 'Satellite Map View' toggle modal that loads Leaflet/OpenStreetMap cleanly if the user switches to geographic map mode.",
+    "svg_dimensions": "viewBox='0 0 900 520'",
+    "visual_elements": [
+      "Concentrated radial rings with subtle dasharray indicating supply radius (100km, 250km, 500km)",
+      "57 Plotting coordinates matching India mandi clusters (Punjab, Haryana, MP, Maharashtra, UP, Rajasthan, Gujarat)",
+      "Curved bezier paths (d='M... Q...') from top mandis to 6 destination warehouses with animated dashoffset pulses",
+      "Node state styles: Active Green (#A5F36B), Warning MSP Gold (#F4C86B), High Risk Below MSP (#FF8585)",
+      "Interactive click handlers setting selectedMandi in global state with immediate data-panel update"
+    ]
+  },
+  "data_management_strategy": {
+    "source_of_truth": "/app/frontend/src/data/mockData.js",
+    "github_repository": "https://github.com/aarshdeepkkaur/AgentIQ-Datathon.git",
+    "swappable_architecture": "Create a unified data service (/app/frontend/src/services/dataService.js) that exposes getMandiMaster(), getArrivals(), getPriceAndMsp(), getLogistics(), getWeatherSensors(), and getAggregates(). The service defaults to enriched local datasets calibrated to the Datathon's exact numbers, but includes a 'Live Repo Sync' toggle in settings that can fetch raw CSVs via GitHub raw URLs (https://raw.githubusercontent.com/aarshdeepkkaur/AgentIQ-Datathon/main/data/cleaned/...) or localStorage overrides without ever blocking preview.",
+    "labels_mandate": "Every table, card, metric, and AI answer must display 'Demo data · API integration pending' or 'Cleaned Datathon Baseline'."
+  },
+  "interaction_and_motion_guidelines": {
+    "hover_effects": "Subtle card lift: transition: transform 0.2s ease, border-color 0.2s ease; hover:border-[#A5F36B]/50 hover:shadow-[0_8px_30px_rgba(165,243,107,0.08)]",
+    "tab_switching": "Smooth fade-in and scale-in using Tailwind tw-animate-css or Motion div with duration 0.25s",
+    "orbit_nodes": "Pulsing radar ping ring animation (animate-ping with opacity 0.3)",
+    "supply_route_motion": "Animated stroke-dashoffset for dashed bezier curves creating moving logistic cargo effect",
+    "accessibility": "Respect prefers-reduced-motion; high contrast APCA compliant text (#FFFFFF / #E2E8F0 on dark navy); all interactive buttons and inputs have aria-labels and data-testid attributes"
+  },
+  "testing_attributes": {
+    "convention": "data-testid='[component-kebab]-[element-role]'",
+    "required_test_ids": [
+      "crop-selector-wheat",
+      "crop-selector-rice",
+      "crop-selector-maize",
+      "crop-selector-cotton",
+      "crop-selector-mustard",
+      "crop-selector-sugarcane",
+      "filter-state-select",
+      "filter-mandi-select",
+      "filter-risk-toggle",
+      "filter-reset-button",
+      "kpi-total-arrivals-value",
+      "kpi-avg-price-value",
+      "kpi-avg-msp-value",
+      "kpi-below-msp-value",
+      "agri-orbit-svg-container",
+      "agri-orbit-pin-mandi001",
+      "agri-orbit-pin-mandi048",
+      "selected-mandi-panel",
+      "price-msp-chart-container",
+      "logistics-transit-chart",
+      "weather-correlation-chart",
+      "mandi-data-table",
+      "mandi-table-search-input",
+      "ask-agentiq-trigger-button",
+      "ask-agentiq-chat-drawer",
+      "ask-agentiq-input",
+      "ask-agentiq-submit-button",
+      "data-quality-disclaimer-badge"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Build the dashboard using React JS with JSX components in /app/frontend/src/",
+    "Implement the exact color tokens (#07111F, #102235, #A5F36B, #F4C86B, #FF8585, #69C7F5) with custom styling in /app/frontend/src/index.css",
+    "Implement the self-contained SVG Agri-Orbit map with interactive nodes and animated logistics supply routes",
+    "Seed /app/frontend/src/data/mockData.js with the exact schema (mandi_master, mandi_arrivals, price_and_msp, weather_sensors, transport_logistics) and pre-calculated numbers from the README (~3.74M quintals, ₹3,797.82 avg modal price, ₹3,719.78 avg MSP, 40.16% below MSP, 12.99h transit, 0.28% delay, 0.54 rainfall correlation)",
+    "Include the Ask AgentIQ side drawer with instant conversational answers to core datathon questions labelled 'Demo response · API integration pending'",
+    "Add the Hero landscape card featuring the drone agriculture imagery alongside the active mandi telemetry inspector",
+    "Include a rich data table with search, sorting, crop filters, and pagination for mandi records",
+    "Ensure all buttons, dropdowns, and interactive items have functional state and data-testid attributes"
+  ]
+}
