@@ -17,11 +17,12 @@ interface HeaderFilterBarProps {
   onRiskChange: (value: RiskLevel | "all") => void;
   onSearchChange: (value: string) => void;
   onReset: () => void;
+  dataSource?: string;
 }
 
 const STATE_OPTIONS = ["All states", "Punjab", "Uttar Pradesh", "Maharashtra", "Madhya Pradesh", "Haryana", "Rajasthan"];
 
-export function HeaderFilterBar({ crop, state, mandi, risk, search, onCropChange, onStateChange, onMandiChange, onRiskChange, onSearchChange, onReset }: HeaderFilterBarProps) {
+export function HeaderFilterBar({ crop, state, mandi, risk, search, onCropChange, onStateChange, onMandiChange, onRiskChange, onSearchChange, onReset, dataSource = "Demo data · API integration pending" }: HeaderFilterBarProps) {
   return <>
     <header className="flex flex-col gap-5 border-b border-white/[0.06] pb-6 xl:flex-row xl:items-end xl:justify-between" data-testid="dashboard-header">
       <div className="pl-12 lg:pl-0" data-testid="dashboard-title-info">
@@ -50,7 +51,7 @@ export function HeaderFilterBar({ crop, state, mandi, risk, search, onCropChange
         </div>
         <Button variant="ghost" size="sm" onClick={onReset} className="h-9 gap-2 self-start border border-white/[0.08] text-[#8CA0B5] hover:border-[#A5F36B]/30 hover:text-[#A5F36B] xl:self-end" data-testid="filter-reset-button"><RotateCcw className="size-3.5" /> Reset</Button>
       </div>
-      <div className="relative mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-3" data-testid="filter-summary-row"><div className="flex items-center gap-2 text-xs text-[#E2E8F0]"><SlidersHorizontal className="size-3.5 text-[#A5F36B]" /> Filters applied to all views</div><span className="h-3 w-px bg-white/10" /><div className="flex items-center gap-2 text-[11px] text-[#8CA0B5]"><Search className="size-3" /> <Input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search mandis…" className="h-6 w-36 border-0 bg-transparent p-0 text-[11px] text-white shadow-none focus-visible:ring-0" data-testid="mandi-table-search-input" /></div><span className="ml-auto rounded-full border border-[#F4C86B]/20 bg-[#F4C86B]/[0.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[#F4C86B]" data-testid="data-quality-disclaimer-badge">Demo data · API integration pending</span></div>
+      <div className="relative mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-3" data-testid="filter-summary-row"><div className="flex items-center gap-2 text-xs text-[#E2E8F0]"><SlidersHorizontal className="size-3.5 text-[#A5F36B]" /> Filters applied to all views</div><span className="h-3 w-px bg-white/10" /><div className="flex items-center gap-2 text-[11px] text-[#8CA0B5]"><Search className="size-3" /> <Input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search mandis…" className="h-6 w-36 border-0 bg-transparent p-0 text-[11px] text-white shadow-none focus-visible:ring-0" data-testid="mandi-table-search-input" /></div><span className="ml-auto rounded-full border border-[#F4C86B]/20 bg-[#F4C86B]/[0.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[#F4C86B]" data-testid="data-quality-disclaimer-badge">{dataSource}</span></div>
     </section>
   </>;
 }

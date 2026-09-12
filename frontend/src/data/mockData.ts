@@ -71,6 +71,39 @@ export interface CropProfile {
   icon: string;
 }
 
+export type CropProfileMap = Record<CropName, CropProfile>;
+
+export interface CropSyncMetric {
+  crop_name: string;
+  arrivals_qtl: number;
+  avg_modal_price: number;
+  avg_msp: number;
+  below_msp_percentage: number;
+  record_count: number;
+}
+
+export interface MandiVolumeSync {
+  mandi_id: string;
+  mandi_name: string;
+  district: string;
+  state: string;
+  arrival_quantity_qtl: number;
+}
+
+export interface WarehouseTransitSync {
+  destination_warehouse: string;
+  transit_hours: number;
+}
+
+export interface DataSyncResponse {
+  source: string;
+  fetched_at: string;
+  rows_loaded: Record<string, number>;
+  crop_metrics: CropSyncMetric[];
+  top_mandis: MandiVolumeSync[];
+  warehouse_transit: WarehouseTransitSync[];
+}
+
 export interface MandiRow extends MandiMaster {
   modalPrice: number;
   msp: number;
@@ -81,6 +114,8 @@ export interface MandiRow extends MandiMaster {
   risk: RiskLevel;
   destinationWarehouse: string;
   position: { x: number; y: number };
+  latitude: number;
+  longitude: number;
 }
 
 export const CROPS: CropName[] = [
@@ -159,6 +194,23 @@ export const cropProfiles: Record<CropName, CropProfile> = {
   Gram: { modal: 5780, msp: 5440, arrivals: 298740, belowMsp: 20.8, transit: 12.72, delay: 0.25, trend: 2.9, season: "Rabi · Oct–Mar", outlook: "Healthy protein demand supports the spread", icon: "G" },
 };
 
+export function mergeCropProfiles(sync?: DataSyncResponse): CropProfileMap {
+  const merged: CropProfileMap = { ...cropProfiles };
+  for (const metric of sync?.crop_metrics ?? []) {
+    if (!CROPS.includes(metric.crop_name as CropName)) continue;
+    const crop = metric.crop_name as CropName;
+    const existing = merged[crop];
+    merged[crop] = {
+      ...existing,
+      arrivals: metric.arrivals_qtl || existing.arrivals,
+      modal: metric.avg_modal_price || existing.modal,
+      msp: metric.avg_msp || existing.msp,
+      belowMsp: metric.below_msp_percentage || existing.belowMsp,
+    };
+  }
+  return merged;
+}
+
 const MANDI_SHARES = [0.12, 0.118, 0.116, 0.108, 0.09, 0.08, 0.07, 0.06];
 const POSITIONS = [
   { x: 26, y: 48 },
@@ -171,31 +223,46 @@ const POSITIONS = [
   { x: 79, y: 30 },
 ];
 
-export function getMandiRows(crop: CropName): MandiRow[] {
-  const profile = cropProfiles[crop];
+const COORDINATES = [
+  { latitude: 30.9, longitude: 75.85 },
+  { latitude: 29.97, longitude: 77.7 },
+  { latitude: 21.19, longitude: 81.28 },
+  { latitude: 20.0, longitude: 73.78 },
+  { latitude: 22.72, longitude: 75.86 },
+  { latitude: 31.63, longitude: 74.87 },
+  { latitude: 29.97, longitude: 76.88 },
+  { latitude: 25.18, longitude: 75.84 },
+];
+
+export function getMandiRows(crop: CropName, profiles: CropProfileMap = cropProfiles, sync?: DataSyncResponse): MandiRow[] {
+  const profile = profiles[crop];
   return mandi_master.map((mandi, index) => {
     const modalPrice = Math.round(profile.modal + [52, -94, 38, -28, 116, -142, 66, -64][index]);
     const msp = Math.round(profile.msp + [0, 0, 0, 0, 14, 0, 0, 0][index]);
     const priceGap = modalPrice - msp;
-    const transitHours = Number((profile.transit + [0.7, 1.2, -1.6, -0.4, 0.35, 0.1, 0.62, 1.05][index]).toFixed(1));
+    const syncedMandi = sync?.top_mandis.find((item) => item.mandi_id === mandi.mandi_id);
+    const warehouse = ["WH-NORTH", "WH-CENTRAL", "WH-CENTRAL", "WH-SOUTH", "WH-WEST", "WH-NORTH", "WH-EAST", "WH-WEST"][index];
+    const syncedWarehouse = sync?.warehouse_transit.find((item) => item.destination_warehouse === warehouse);
+    const transitHours = Number((syncedWarehouse?.transit_hours ?? profile.transit + [0.7, 1.2, -1.6, -0.4, 0.35, 0.1, 0.62, 1.05][index]).toFixed(1));
     const risk: RiskLevel = priceGap < -80 || transitHours > 14 ? "high" : priceGap < 0 || transitHours > 13.5 ? "medium" : "low";
     return {
       ...mandi,
       modalPrice,
       msp,
       priceGap,
-      arrivalQuantity: Math.round(profile.arrivals * MANDI_SHARES[index]),
+      arrivalQuantity: syncedMandi?.arrival_quantity_qtl ?? Math.round(profile.arrivals * MANDI_SHARES[index]),
       transitHours,
       weather: ["24°C · Clear", "22°C · Light rain", "26°C · Clear", "23°C · Cloudy", "25°C · Clear", "21°C · Rain", "20°C · Cloudy", "27°C · Clear"][index],
       risk,
-      destinationWarehouse: ["WH-NORTH", "WH-CENTRAL", "WH-CENTRAL", "WH-SOUTH", "WH-WEST", "WH-NORTH", "WH-EAST", "WH-WEST"][index],
+      destinationWarehouse: warehouse,
       position: POSITIONS[index],
+      ...COORDINATES[index],
     };
   });
 }
 
-export function getPriceTrend(crop: CropName) {
-  const profile = cropProfiles[crop];
+export function getPriceTrend(crop: CropName, profiles: CropProfileMap = cropProfiles) {
+  const profile = profiles[crop];
   const points = [
     ["01 Aug", -84], ["08 Aug", -41], ["15 Aug", -62], ["22 Aug", -12], ["29 Aug", 28], ["05 Sep", 8], ["12 Sep", 64], ["19 Sep", 42],
   ];

@@ -11,6 +11,8 @@ from typing import List
 import uuid
 from datetime import datetime
 
+from routers.data_sync import router as data_sync_router
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -44,6 +46,8 @@ class StatusCheckCreate(BaseModel):
     client_name: str
 
 # Add your routes to the router instead of directly to app
+api_router.include_router(data_sync_router)
+
 @api_router.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -60,9 +64,6 @@ async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
-# Include the router in the main app
-app.include_router(api_router)
-
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -77,3 +78,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Keep the prefixed router mount at the end so every API route is reachable under /api.
+app.include_router(api_router)

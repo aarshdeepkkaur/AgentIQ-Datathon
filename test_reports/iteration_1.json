@@ -1,0 +1,60 @@
+{
+  "passed": 7,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [
+    "Ask AgentIQ is MOCKED and labeled Demo response · API integration pending by design."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Live cleaned-data sync",
+      "name": "test_data_sync_returns_cleaned_source_and_crop_metrics",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "HTTP GET /api/data-sync returned 200; source=github-cleaned-data, prices=12000, and crop_metrics contained six crop profiles."
+    },
+    {
+      "criterion": "Live cleaned-data sync",
+      "name": "dashboard-shows-live-cleaned-sync",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Dashboard rendered the GitHub cleaned data badge and Wheat hero crop without blocking first render."
+    },
+    {
+      "criterion": "Crop metrics use synced data",
+      "name": "crop-selection-updates-dashboard-metrics",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Selecting Maize updated the hero crop label and price/MSP chart note without navigation."
+    },
+    {
+      "criterion": "Satellite view toggle",
+      "name": "satellite-view-switches-map-layers",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Satellite view replaced orbit view; Street and Satellite controls visibly activated their layers; Orbit view restored."
+    },
+    {
+      "criterion": "Mandi marker selection",
+      "name": "mandi-marker-updates-selected-inspector",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Satellite map exposed eight interactive markers; clicking a marker kept the selected-hub inspector and MANDI attribution active."
+    },
+    {
+      "criterion": "Reference-style gauges",
+      "name": "gauges-and-compact-kpis-visible",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Three gauge panels showed Modal price, Avg transit, and MSP risk; compact panels showed arrivals, price gap, and active mandis."
+    },
+    {
+      "criterion": "Existing dashboard interactions",
+      "name": "dashboard-filters-table-and-ask-agentiq-work",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Mandi search filtered to Hyderabad, table selection updated the selected hub, and Ask AgentIQ opened and returned the labeled demo response."
+    }
+  ]
+}
