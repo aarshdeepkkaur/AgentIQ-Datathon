@@ -28,7 +28,7 @@ export default function Home() {
   const handleMandiChange = (value: string) => { setMandi(value); const next = allRows.find((row) => row.mandi_name === value); if (next) setSelectedMandiId(next.mandi_id); };
   const resetFilters = () => { setState("All states"); setMandi("All mandis"); setRisk("all"); setSearch(""); };
 
-  return <div className="min-h-screen bg-[#07111F] text-[#E2E8F0]" data-testid="agentiq-dashboard">
+  return <div className="reference-skin min-h-screen bg-[#07111F] text-[#E2E8F0]" data-testid="agentiq-dashboard">
     <SidebarNavigation onAskAgent={() => setAgentOpen(true)} />
     <main className="min-h-screen lg:pl-64 xl:pl-72" data-testid="dashboard-main-content"><div className="mx-auto max-w-[1720px] space-y-6 p-4 pt-20 sm:p-6 sm:pt-20 lg:space-y-7 lg:p-8 lg:pt-8">
       <HeaderFilterBar crop={crop} state={state} mandi={mandi} risk={risk} search={search} onCropChange={handleCropChange} onStateChange={setState} onMandiChange={handleMandiChange} onRiskChange={setRisk} onSearchChange={setSearch} onReset={resetFilters} />
