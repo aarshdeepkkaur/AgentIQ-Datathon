@@ -95,6 +95,14 @@ export interface WarehouseTransitSync {
   transit_hours: number;
 }
 
+export interface WeatherSyncSummary {
+  avg_temperature_c: number;
+  avg_rainfall_mm: number;
+  avg_humidity_percent: number;
+  rainfall_arrivals_correlation: number;
+  readings_count: number;
+}
+
 export interface DataSyncResponse {
   source: string;
   fetched_at: string;
@@ -102,6 +110,15 @@ export interface DataSyncResponse {
   crop_metrics: CropSyncMetric[];
   top_mandis: MandiVolumeSync[];
   warehouse_transit: WarehouseTransitSync[];
+  weather: WeatherSyncSummary;
+}
+
+export interface AgentAnswer {
+  answer: string;
+  intent: string;
+  source: string;
+  grounded_at: string;
+  evidence: string[];
 }
 
 export interface MandiRow extends MandiMaster {

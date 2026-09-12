@@ -21,6 +21,7 @@ The live sync enhancement calls `GET /api/data-sync`, which fetches and aggregat
 4. Open Ask AgentIQ from the floating action, sidebar, or footer; submit a suggested or typed question for a clearly labeled mocked response.
 5. Use the mobile menu to reach the same dashboard on narrow screens.
 6. Toggle Orbit view / Satellite view; both preserve the selected mandi and filtered row set.
+7. Ask AgentIQ sends the question and selected crop to `POST /api/agent/ask`; the FastAPI route grounds the answer in the synced GitHub CSV aggregates and returns evidence.
 
 ## Auth and roles
 No authentication or gated roles are present in this demo MVP.
@@ -28,3 +29,4 @@ No authentication or gated roles are present in this demo MVP.
 ## Enhancements
 - KPI strip now has circular Modal Price, Average Transit, and MSP Risk gauges.
 - Satellite view uses Leaflet with a demo satellite tile layer and street-map fallback; map coordinates are stable local mandi coordinates because the cleaned repository does not contain latitude/longitude fields.
+- Ask AgentIQ is now a grounded deterministic FastAPI agent. It routes questions into MSP-risk, route-health, weather-impact, or crop-comparison intents and returns source evidence from the synced data. It does not call an external LLM.

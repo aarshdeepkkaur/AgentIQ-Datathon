@@ -12,6 +12,7 @@ from models.data_sync import (
     DataSyncResponse,
     MandiVolumeSync,
     WarehouseTransitSync,
+    WeatherSyncSummary,
 )
 
 router = APIRouter(prefix="/data-sync", tags=["data-sync"])
@@ -23,6 +24,9 @@ CSV_FILES = {
     "below_msp": "below_msp_by_crop.csv",
     "top_mandis": "top_mandis.csv",
     "warehouse_transit": "warehouse_transit.csv",
+    "weather": "weather_cleaned.csv",
+    "daily_arrivals": "daily_arrivals.csv",
+    "daily_rainfall": "daily_rainfall.csv",
 }
 
 
@@ -46,6 +50,18 @@ def to_float(value: str | None) -> float | None:
         return float(value)
     except ValueError:
         return None
+
+
+def pearson_correlation(pairs: list[tuple[float, float]]) -> float:
+    if len(pairs) < 2:
+        return 0.0
+    left_mean = sum(left for left, _ in pairs) / len(pairs)
+    right_mean = sum(right for _, right in pairs) / len(pairs)
+    numerator = sum((left - left_mean) * (right - right_mean) for left, right in pairs)
+    left_variance = sum((left - left_mean) ** 2 for left, _ in pairs)
+    right_variance = sum((right - right_mean) ** 2 for _, right in pairs)
+    denominator = (left_variance * right_variance) ** 0.5
+    return round(numerator / denominator, 2) if denominator else 0.0
 
 
 async def fetch_csv(client: httpx.AsyncClient, filename: str) -> list[dict[str, str]]:
@@ -121,6 +137,24 @@ async def sync_cleaned_data() -> DataSyncResponse:
         if row.get("destination_warehouse")
     ]
 
+    weather_temperature = [value for row in datasets["weather"] if (value := to_float(row.get("temperature_c"))) is not None]
+    weather_rainfall = [value for row in datasets["weather"] if (value := to_float(row.get("rainfall_mm"))) is not None]
+    weather_humidity = [value for row in datasets["weather"] if (value := to_float(row.get("humidity_percent"))) is not None]
+    rainfall_by_date = {row.get("date", ""): to_float(row.get("rainfall_mm")) for row in datasets["daily_rainfall"]}
+    arrivals_by_date = {row.get("date", ""): to_float(row.get("total_arrivals_qtl")) for row in datasets["daily_arrivals"]}
+    weather_pairs = [
+        (rainfall_by_date[date], arrivals_by_date[date])
+        for date in rainfall_by_date.keys() & arrivals_by_date.keys()
+        if rainfall_by_date[date] is not None and arrivals_by_date[date] is not None
+    ]
+    weather = WeatherSyncSummary(
+        avg_temperature_c=round(sum(weather_temperature) / len(weather_temperature), 2) if weather_temperature else 0,
+        avg_rainfall_mm=round(sum(weather_rainfall) / len(weather_rainfall), 2) if weather_rainfall else 0,
+        avg_humidity_percent=round(sum(weather_humidity) / len(weather_humidity), 2) if weather_humidity else 0,
+        rainfall_arrivals_correlation=pearson_correlation(weather_pairs),
+        readings_count=len(datasets["weather"]),
+    )
+
     return DataSyncResponse(
         source="github-cleaned-data",
         fetched_at=datetime.now(timezone.utc),
@@ -128,4 +162,5 @@ async def sync_cleaned_data() -> DataSyncResponse:
         crop_metrics=crop_metrics,
         top_mandis=top_mandis,
         warehouse_transit=warehouse_transit,
+        weather=weather,
     )

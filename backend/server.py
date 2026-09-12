@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime
 
 from routers.data_sync import router as data_sync_router
+from routers.agent import router as agent_router
 
 
 ROOT_DIR = Path(__file__).parent
@@ -47,6 +48,7 @@ class StatusCheckCreate(BaseModel):
 
 # Add your routes to the router instead of directly to app
 api_router.include_router(data_sync_router)
+api_router.include_router(agent_router)
 
 @api_router.get("/")
 async def root():

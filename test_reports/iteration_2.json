@@ -1,0 +1,77 @@
+{
+  "passed": 9,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [],
+  "retest_needed": false,
+  "checks": [
+    {
+      "criterion": "Grounded FastAPI agent endpoint",
+      "name": "test_agent_ask_happy_path_returns_grounded_answer / test_agent_ask_empty_query_returns_422",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/agent/ask with a non-empty query+crop returned 200 with answer, intent, source, grounded_at, evidence; empty query returned 422."
+    },
+    {
+      "criterion": "MSP risk answers",
+      "name": "test_agent_ask_msp_risk_grounded_in_synced_metrics",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/agent/ask (Wheat MSP query) returned intent=msp-risk with evidence [\"1,881 price rows for Wheat\", \"31.77% below-MSP records\", \"Source: price_and_msp_cleaned.csv + below_msp_by_crop.csv\"]."
+    },
+    {
+      "criterion": "Logistics answers",
+      "name": "test_agent_ask_route_health_from_warehouse_transit",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/agent/ask (transit query) returned intent=route-health with evidence [\"Fastest: WH-SOUTH · 12.87h\", \"Slowest: WH-WEST · 13.10h\", \"Source: warehouse_transit.csv\"]."
+    },
+    {
+      "criterion": "Weather answers",
+      "name": "test_agent_ask_weather_impact_from_cleaned_weather",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/agent/ask (rainfall/arrivals query) returned intent=weather-impact citing 27.4°C / 18.3mm / 62.3% humidity and 0.05 rainfall-arrivals correlation, Source: weather_cleaned.csv."
+    },
+    {
+      "criterion": "Selected crop context",
+      "name": "test_agent_ask_uses_selected_crop_context_not_stale_wheat",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "Same MSP-style query with crop_name=Wheat vs crop_name=Maize produced answers starting with 'Wheat'/'Maize' respectively using each crop's own modal/MSP/below-MSP metrics (not stale Wheat data)."
+    },
+    {
+      "criterion": "Selected crop context",
+      "name": "agent-panel-shows-crop-context-and-grounded-answer",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Selected Maize via crop-selector-trigger; ask-agentiq-status showed 'Context: Maize · Grounded FastAPI · GitHub cleaned data'; submitted MSP question and got a Maize-grounded answer with evidence block; verified also against the public preview URL (ingress path)."
+    },
+    {
+      "criterion": "Agent UI flow",
+      "name": "agent-suggested-question-shows-loading-then-answer",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Clicked a suggested prompt; user message appeared, then a grounded agent answer with a visible evidence block rendered; chat text contained no 'Demo response'/'API integration pending' strings."
+    },
+    {
+      "criterion": "Agent UI flow",
+      "name": "agent-panel-shows-crop-context-and-grounded-answer",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Confirmed absence of legacy mocked 'Demo response · API integration pending' text both before and after submitting a typed question, with the resulting answer text grounded in Maize metrics."
+    },
+    {
+      "criterion": "Failure resilience",
+      "name": "agent-panel-shows-retry-message-on-api-failure",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Routed POST /api/agent/ask to a simulated 500; chat displayed an 'unavailable ... try again' retry message (no crash/lost history); closed the drawer and confirmed hero-crop-label and mandi-data-table remained visible/usable."
+    }
+  ],
+  "notes": [
+    "8 acceptance criteria in briefing; each is covered by at least one artifact (5 backend + 4 browser checks across the 8 criteria); 'Grounded FastAPI agent endpoint' is covered by two backend test functions counted as one checks[] entry.",
+    "Backend suite: cd /app/backend && python -m pytest -q -p no:cacheprovider -> 8 passed (6 in test_tscheck_grounded_agent_ask.py + pre-existing test_tscheck_live-cleaned-sync.py).",
+    "Pre-existing browser check 'dashboard-filters-table-and-ask-agentiq-work' still asserts the old mocked 'Demo response' text (from iteration_1, predates this feature pass) and will now fail if re-run; it is outside this iteration's acceptance_matrix so was not modified, but the main agent should refresh or retire that assertion since the agent panel is no longer mocked."
+  ]
+}

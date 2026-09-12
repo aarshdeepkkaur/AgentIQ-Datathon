@@ -25,6 +25,14 @@ class WarehouseTransitSync(BaseModel):
     transit_hours: float
 
 
+class WeatherSyncSummary(BaseModel):
+    avg_temperature_c: float
+    avg_rainfall_mm: float
+    avg_humidity_percent: float
+    rainfall_arrivals_correlation: float
+    readings_count: int
+
+
 class DataSyncResponse(BaseModel):
     source: str
     fetched_at: datetime
@@ -32,3 +40,4 @@ class DataSyncResponse(BaseModel):
     crop_metrics: list[CropSyncMetric]
     top_mandis: list[MandiVolumeSync]
     warehouse_transit: list[WarehouseTransitSync]
+    weather: WeatherSyncSummary
