@@ -14,6 +14,8 @@ from datetime import datetime
 from routers.data_sync import router as data_sync_router
 from routers.agent import router as agent_router
 from routers.dashboard import router as dashboard_router
+from routers.mandi import router as mandi_router
+from routers.alerts import router as alerts_router
 
 
 ROOT_DIR = Path(__file__).parent
@@ -51,6 +53,8 @@ class StatusCheckCreate(BaseModel):
 api_router.include_router(data_sync_router)
 api_router.include_router(agent_router)
 api_router.include_router(dashboard_router)
+api_router.include_router(mandi_router)
+api_router.include_router(alerts_router)
 
 @api_router.get("/")
 async def root():

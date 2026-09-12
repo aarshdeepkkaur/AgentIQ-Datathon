@@ -44,3 +44,29 @@ export const apiPut = <T>(path: string, body?: JsonBody) => request<T>("PUT", pa
 export const apiPatch = <T>(path: string, body?: JsonBody) =>
   request<T>("PATCH", path, body ?? null);
 export const apiDelete = <T>(path: string) => request<T>("DELETE", path);
+
+// Server-Sent Events over POST: the backend emits `data: <json>\n\n` frames. Each parsed frame is
+// handed to onEvent; the promise resolves when the stream closes. Same relative /api base as above.
+export async function apiPostStream<TEvent>(path: string, body: JsonBody, onEvent: (event: TEvent) => void, signal?: AbortSignal): Promise<void> {
+  const res = await fetch(`${BASE}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal });
+  if (!res.ok || !res.body) {
+    const errBody = await res.json().catch(() => null);
+    throw new ApiError(res.status, errBody);
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let boundary = buffer.indexOf("\n\n");
+    while (boundary !== -1) {
+      const frame = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      const data = frame.split("\n").filter((line) => line.startsWith("data:")).map((line) => line.slice(5).trim()).join("");
+      if (data) onEvent(JSON.parse(data) as TEvent);
+      boundary = buffer.indexOf("\n\n");
+    }
+  }
+}

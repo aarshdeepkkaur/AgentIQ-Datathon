@@ -126,6 +126,8 @@ class DashboardResponse(BaseModel):
     source: str
     fetched_at: datetime
     selected_crop: str
+    filter_from: str | None = None
+    filter_to: str | None = None
     crops: list[str]
     states: list[str]
     crop_summary: CropSummary

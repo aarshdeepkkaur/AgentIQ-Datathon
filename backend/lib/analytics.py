@@ -1,6 +1,7 @@
 """Aggregate the cleaned datasets into the dashboard payload for a selected crop (pandas, no DB)."""
 
 import math
+from dataclasses import replace
 
 import pandas as pd
 
@@ -46,7 +47,28 @@ DISTRICT_STATE = {
 }
 LON_MIN, LON_MAX, LAT_MIN, LAT_MAX = 73.6, 80.6, 26.4, 32.4
 
-_dashboard_cache: dict[tuple[str, str], DashboardResponse] = {}
+_dashboard_cache: dict[tuple[str, str, str, str], DashboardResponse] = {}
+
+
+def filter_bundle(bundle: DatasetBundle, date_from: str | None, date_to: str | None) -> DatasetBundle:
+    """Restrict every dated dataset to [date_from, date_to] (inclusive, YYYY-MM-DD). Master is never filtered."""
+    if not date_from and not date_to:
+        return bundle
+    start = pd.Timestamp(date_from) if date_from else pd.Timestamp.min
+    end = (pd.Timestamp(date_to) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)) if date_to else pd.Timestamp.max
+
+    def within(series: pd.Series) -> pd.Series:
+        return series.notna() & (series >= start) & (series <= end)
+
+    weather_local = bundle.weather["timestamp_ist"].dt.tz_convert("Asia/Kolkata").dt.tz_localize(None)
+    departures = pd.to_datetime(bundle.transport["departure_time_clean"], errors="coerce")
+    return replace(
+        bundle,
+        arrivals=bundle.arrivals[within(bundle.arrivals["date"])],
+        prices=bundle.prices[within(bundle.prices["date"])],
+        transport=bundle.transport[within(departures)],
+        weather=bundle.weather[within(weather_local)],
+    )
 
 
 def num(value, default: float = 0.0, digits: int = 2) -> float:
@@ -126,10 +148,11 @@ def build_crop_summary(bundle: DatasetBundle, crop: str, mandi_transit: pd.DataF
     )
 
 
-def build_dashboard(bundle: DatasetBundle, crop: str) -> DashboardResponse:
-    key = (bundle.fetched_at.isoformat(), crop)
+def build_dashboard(full_bundle: DatasetBundle, crop: str, date_from: str | None = None, date_to: str | None = None) -> DashboardResponse:
+    key = (full_bundle.fetched_at.isoformat(), crop, date_from or "", date_to or "")
     if key in _dashboard_cache:
         return _dashboard_cache[key]
+    bundle = filter_bundle(full_bundle, date_from, date_to)
 
     transport = bundle.transport.dropna(subset=["transit_hours"]).copy()
     transport["delayed"] = transport["transit_hours"] > DELAY_THRESHOLD_HOURS
@@ -242,7 +265,7 @@ def build_dashboard(bundle: DatasetBundle, crop: str) -> DashboardResponse:
     ]
 
     all_comparable = bundle.prices.dropna(subset=["modal_price", "msp"])
-    all_dates = pd.concat([bundle.prices["date"], bundle.arrivals["date"]]).dropna()
+    all_dates = pd.concat([full_bundle.prices["date"], full_bundle.arrivals["date"]]).dropna()
     totals = NetworkTotals(
         total_arrivals_qtl=num(bundle.arrivals["arrival_quantity_qtl"].sum()), avg_modal_price=num(bundle.prices["modal_price"].mean()),
         avg_msp=num(bundle.prices["msp"].mean()), below_msp_percentage=pct(int((all_comparable["modal_price"] < all_comparable["msp"]).sum()), len(all_comparable)),
@@ -261,7 +284,7 @@ def build_dashboard(bundle: DatasetBundle, crop: str) -> DashboardResponse:
     )
 
     response = DashboardResponse(
-        source=bundle.source, fetched_at=bundle.fetched_at, selected_crop=crop, crops=list(CROPS),
+        source=bundle.source, fetched_at=bundle.fetched_at, selected_crop=crop, filter_from=date_from, filter_to=date_to, crops=list(CROPS),
         states=sorted({row.state for row in rows}), crop_summary=summary, crop_summaries=summaries, mandis=rows,
         price_trend=price_trend, weather_series=weather_series, warehouses=warehouses, msp_distribution=msp_distribution,
         weather=weather_summary, totals=totals, data_quality=data_quality,

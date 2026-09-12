@@ -1,8 +1,10 @@
-import { Bell, CalendarDays, ChevronDown, Filter, Loader2, MapPin, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CalendarDays, Check, ChevronDown, Filter, Loader2, MapPin, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { AlertsBell } from "@/components/dashboard/AlertsBell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { CropName, RiskLevel } from "@/data/types";
+import type { CropName, DateWindow, RiskLevel } from "@/data/types";
 import { formatDate } from "@/data/types";
 
 interface HeaderFilterBarProps {
@@ -12,6 +14,8 @@ interface HeaderFilterBarProps {
   mandiNames: string[];
   dateFrom: string;
   dateTo: string;
+  window: DateWindow;
+  onWindowApply: (window: DateWindow) => void;
   state: string;
   mandi: string;
   risk: RiskLevel | "all";
@@ -26,8 +30,13 @@ interface HeaderFilterBarProps {
   isRefreshing?: boolean;
 }
 
-export function HeaderFilterBar({ crop, crops, states, mandiNames, dateFrom, dateTo, state, mandi, risk, search, onCropChange, onStateChange, onMandiChange, onRiskChange, onSearchChange, onReset, dataSource, isRefreshing = false }: HeaderFilterBarProps) {
+export function HeaderFilterBar({ crop, crops, states, mandiNames, dateFrom, dateTo, window, onWindowApply, state, mandi, risk, search, onCropChange, onStateChange, onMandiChange, onRiskChange, onSearchChange, onReset, dataSource, isRefreshing = false }: HeaderFilterBarProps) {
   const sortedMandis = [...mandiNames].sort((left, right) => left.localeCompare(right));
+  const [draft, setDraft] = useState<DateWindow>(window);
+  useEffect(() => setDraft(window), [window]);
+  const draftDirty = draft.from !== window.from || draft.to !== window.to;
+  const draftInvalid = Boolean(draft.from && draft.to && draft.from > draft.to);
+  const windowActive = Boolean(window.from || window.to);
   return <>
     <header className="flex flex-col gap-5 border-b border-white/[0.06] pb-6 xl:flex-row xl:items-end xl:justify-between" data-testid="dashboard-header">
       <div className="pl-12 lg:pl-0" data-testid="dashboard-title-info">
@@ -37,7 +46,7 @@ export function HeaderFilterBar({ crop, crops, states, mandiNames, dateFrom, dat
       </div>
       <div className="flex items-center gap-3" data-testid="dashboard-header-actions">
         <div className="hidden items-center gap-2 rounded-full border border-[#A5F36B]/20 bg-[#A5F36B]/[0.05] px-3 py-2 text-xs text-[#A5F36B] sm:flex" data-testid="live-monitoring-status">{isRefreshing ? <Loader2 className="size-3 animate-spin" /> : <span className="size-1.5 animate-pulse rounded-full bg-[#A5F36B]" />} {isRefreshing ? "Syncing datasets" : "Live monitoring"}</div>
-        <Button variant="ghost" size="icon" className="border border-white/[0.07] bg-white/[0.02] text-[#8CA0B5] hover:text-white" data-testid="header-notifications-button" aria-label="View notifications"><Bell className="size-4" /><span className="absolute ml-4 mt-[-14px] size-1.5 rounded-full bg-[#FF8585]" /></Button>
+        <AlertsBell crop={crop} window={window} />
         <div className="hidden items-center gap-2 border-l border-white/[0.08] pl-3 sm:flex" data-testid="header-profile"><div className="flex size-8 items-center justify-center rounded-full bg-[#1c3d47] text-[10px] font-semibold text-[#A5F36B]">AK</div><ChevronDown className="size-3 text-[#5B738B]" /></div>
       </div>
     </header>
@@ -51,12 +60,12 @@ export function HeaderFilterBar({ crop, crops, states, mandiNames, dateFrom, dat
         <div className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4" data-testid="filter-fields">
           <div><label className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8CA0B5]"><MapPin className="size-3" /> State</label><Select value={state} onValueChange={onStateChange}><SelectTrigger className="h-9 w-full border-white/[0.08] bg-[#07111F]/60 text-xs text-[#E2E8F0]" data-testid="filter-state-select"><SelectValue>{(value) => value}</SelectValue></SelectTrigger><SelectContent><SelectItem value="All states">All states</SelectItem>{states.map((item) => <SelectItem key={item} value={item} data-testid={`filter-state-option-${item.toLowerCase().replaceAll(" ", "-")}`}>{item}</SelectItem>)}</SelectContent></Select></div>
           <div><label className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8CA0B5]"><StoreIcon /> Mandi</label><Select value={mandi} onValueChange={onMandiChange}><SelectTrigger className="h-9 w-full border-white/[0.08] bg-[#07111F]/60 text-xs text-[#E2E8F0]" data-testid="filter-mandi-select"><SelectValue>{(value) => value === "All mandis" ? value : value?.replace(" Mandi", "")}</SelectValue></SelectTrigger><SelectContent className="max-h-72"><SelectItem value="All mandis">All mandis</SelectItem>{sortedMandis.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select></div>
-          <div><label className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8CA0B5]"><CalendarDays className="size-3" /> Data window</label><div className="flex h-9 w-full items-center justify-between rounded-lg border border-white/[0.08] bg-[#07111F]/60 px-3 text-left text-xs text-[#E2E8F0]" data-testid="filter-date-range-button" aria-label="Cleaned data window"><span>{formatDate(dateFrom)} — {formatDate(dateTo)}</span></div></div>
+          <div className="col-span-2 sm:col-span-1"><label className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8CA0B5]"><CalendarDays className="size-3" /> Date window</label><div className="flex h-9 items-center gap-1 rounded-lg border border-white/[0.08] bg-[#07111F]/60 px-2" data-testid="filter-date-range-control"><input type="date" value={draft.from} min={dateFrom} max={draft.to || dateTo} onChange={(event) => setDraft((current) => ({ ...current, from: event.target.value }))} className="min-w-0 flex-1 bg-transparent font-mono text-[10px] text-[#E2E8F0] outline-none [color-scheme:dark]" aria-label="Window start" data-testid="filter-date-from-input" /><span className="text-[#5B738B]">—</span><input type="date" value={draft.to} min={draft.from || dateFrom} max={dateTo} onChange={(event) => setDraft((current) => ({ ...current, to: event.target.value }))} className="min-w-0 flex-1 bg-transparent font-mono text-[10px] text-[#E2E8F0] outline-none [color-scheme:dark]" aria-label="Window end" data-testid="filter-date-to-input" /></div></div>
           <div><label className="mb-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[#8CA0B5]"><Filter className="size-3" /> Risk level</label><Select value={risk} onValueChange={(value) => onRiskChange(value as RiskLevel | "all")}><SelectTrigger className="h-9 w-full border-white/[0.08] bg-[#07111F]/60 text-xs text-[#E2E8F0]" data-testid="filter-risk-toggle"><SelectValue>{(value) => value === "all" ? "All risk" : `${value?.slice(0, 1).toUpperCase()}${value?.slice(1)} risk`}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">All risk</SelectItem><SelectItem value="low">Low risk</SelectItem><SelectItem value="medium">Medium risk</SelectItem><SelectItem value="high">High risk</SelectItem></SelectContent></Select></div>
         </div>
-        <Button variant="ghost" size="sm" onClick={onReset} className="h-9 gap-2 self-start border border-white/[0.08] text-[#8CA0B5] hover:border-[#A5F36B]/30 hover:text-[#A5F36B] xl:self-end" data-testid="filter-reset-button"><RotateCcw className="size-3.5" /> Reset</Button>
+        <div className="flex gap-2 self-start xl:self-end"><Button size="sm" onClick={() => onWindowApply(draft)} disabled={!draftDirty || draftInvalid} className="h-9 gap-2 bg-[#A5F36B] text-[#07111F] hover:bg-[#B8F7A1] disabled:opacity-40" data-testid="filter-apply-button"><Check className="size-3.5" /> Apply</Button><Button variant="ghost" size="sm" onClick={onReset} className="h-9 gap-2 border border-white/[0.08] text-[#8CA0B5] hover:border-[#A5F36B]/30 hover:text-[#A5F36B]" data-testid="filter-reset-button"><RotateCcw className="size-3.5" /> Reset</Button></div>
       </div>
-      <div className="relative mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-3" data-testid="filter-summary-row"><div className="flex items-center gap-2 text-xs text-[#E2E8F0]"><SlidersHorizontal className="size-3.5 text-[#A5F36B]" /> Filters applied to all views</div><span className="h-3 w-px bg-white/10" /><div className="flex items-center gap-2 text-[11px] text-[#8CA0B5]"><Search className="size-3" /> <Input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search mandis…" className="h-6 w-36 border-0 bg-transparent p-0 text-[11px] text-white shadow-none focus-visible:ring-0" data-testid="mandi-table-search-input" /></div><span className="ml-auto rounded-full border border-[#F4C86B]/20 bg-[#F4C86B]/[0.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[#F4C86B]" data-testid="data-quality-disclaimer-badge">{dataSource}</span></div>
+      <div className="relative mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-3" data-testid="filter-summary-row"><div className="flex items-center gap-2 text-xs text-[#E2E8F0]" data-testid="filter-window-summary"><SlidersHorizontal className="size-3.5 text-[#A5F36B]" /> {windowActive ? <span>Window <span className="font-mono text-[#A5F36B]">{formatDate(window.from || dateFrom)} → {formatDate(window.to || dateTo)}</span> applied to all views</span> : <span>Full data window {formatDate(dateFrom)} → {formatDate(dateTo)}</span>}{draftInvalid && <span className="text-[#FF8585]" data-testid="filter-window-invalid">· start must be before end</span>}</div><span className="h-3 w-px bg-white/10" /><div className="flex items-center gap-2 text-[11px] text-[#8CA0B5]"><Search className="size-3" /> <Input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search mandis…" className="h-6 w-36 border-0 bg-transparent p-0 text-[11px] text-white shadow-none focus-visible:ring-0" data-testid="mandi-table-search-input" /></div><span className="ml-auto rounded-full border border-[#F4C86B]/20 bg-[#F4C86B]/[0.06] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[#F4C86B]" data-testid="data-quality-disclaimer-badge">{dataSource}</span></div>
     </section>
   </>;
 }
