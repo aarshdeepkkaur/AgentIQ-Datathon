@@ -319,7 +319,7 @@ def clean_mandi_arrivals():
     # Negative quantities are invalid
     negative_mask = df["arrival_quantity_qtl"] < 0
 
-    df["quality_flag"] = pd.NA
+    df["quality_flag"] = "valid"
 
     df.loc[
         negative_mask,
@@ -762,7 +762,7 @@ def clean_transport():
     negative_transit = df["transit_hours"] < 0
     unrealistic_transit = df["transit_hours"] > MAX_REALISTIC_TRANSIT_HOURS
 
-    df["quality_flag"] = pd.NA
+    df["quality_flag"] = "valid"
 
     df.loc[
         negative_transit,
