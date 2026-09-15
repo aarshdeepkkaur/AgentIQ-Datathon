@@ -1,3 +1,4 @@
+import { useState } from "react"; 
 import {
   Activity,
   ArrowDownRight,
@@ -9,6 +10,7 @@ import {
   Truck,
   Wheat,
 } from "lucide-react";
+import AIAgentPanel from "./components/AIAgentPanel";
 
 const kpis = [
   {
@@ -324,6 +326,7 @@ function App() {
 
           <button className="ai-button">Open AI Agent →</button>
         </section>
+        <AIAgentPanel />
       </main>
     </div>
   );
