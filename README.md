@@ -1,7 +1,7 @@
-====================================================================
+=========================================
  MANDI-TO-MARKET SUPPLY CHAIN OPTIMIZER
  AgentIQ Datathon - Track 3: AgriTech
-====================================================================
+=========================================
 
 An end-to-end agricultural supply chain analytics and decision-support
 system. It brings together mandi arrivals, market prices, government
@@ -600,6 +600,7 @@ Example request:
   "date_from": "2026-08-01",
   "date_to": "2026-09-06"
 }
+###
 
 --------------------------------------------------------------------
  15. TECHNOLOGY STACK
