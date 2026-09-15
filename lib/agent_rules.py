@@ -57,6 +57,54 @@ def rule_based_answer(bundle: DatasetBundle, question: str, crop_name: str, date
         )
         evidence = [f"{data.totals.transport_records:,} transport trips · {data.data_quality.transport_invalid_transit_pct:.1f}% flagged invalid transit", f"Scope: {scope_label}", "Source: transport_cleaned.csv"]
         chart = [AgentChartPoint(label=row.mandi_id.replace("MANDI", "M"), value=row.transit_hours, unit="h") for row in routed[:6]]
+
+
+    elif any(phrase in query for phrase in (
+        "highest average modal price",
+        "highest average price",
+        "top 5 mandis",
+        "top five mandis",
+        "highest modal price"
+    )):
+        intent = "top-mandis-by-modal-price"
+
+        ranked = sorted(
+            scoped,
+            key=lambda row: row.modal_price,
+            reverse=True
+        )[:5]
+
+        if ranked:
+            listed = "; ".join(
+                f"{row.mandi_id} - {row.mandi_name}: {money(row.modal_price)}/qtl"
+                for row in ranked
+            )
+
+            answer = (
+                f"Top 5 mandis with the highest average modal price for {crop}: "
+                f"{listed}."
+            )
+
+            evidence = [
+                f"{summary.price_records:,} price rows for {crop}",
+                "Ranking uses average modal_price per mandi",
+                "Source: price_and_msp_cleaned.csv + mandi_master_cleaned.csv"
+            ]
+
+            chart = [
+                AgentChartPoint(
+                    label=row.mandi_id.replace("MANDI", "M"),
+                    value=round(row.modal_price, 2),
+                    unit="₹"
+                )
+                for row in ranked
+            ]
+        else:
+            answer = f"No modal-price data was found for {crop}."
+            evidence = ["No matching mandi price records"]
+            chart = []
+
+    
     elif "compare" in query or state or any(word in query for word in ("across", "versus", " vs ")):
         intent = "crop-comparison"
         if (state or "mandi" in query) and scoped:
@@ -67,13 +115,13 @@ def rule_based_answer(bundle: DatasetBundle, question: str, crop_name: str, date
                 f"{money(ranked[-1].modal_price)}/qtl against an MSP of {money(summary.msp)}. {sum(1 for row in ranked if row.price_gap < 0)} of {len(ranked)} mandis average below MSP."
             )
             evidence = [f"{sum(row.price_records for row in ranked):,} price rows for {crop} in {scope_label}", "Ranking uses mean modal_price per mandi", "Source: price_and_msp_cleaned.csv + mandi_master_cleaned.csv"]
-            chart = [AgentChartPoint(label=row.mandi_id.replace("MANDI", "M"), value=row.modal_price, unit="₹") for row in top]
+            chart = [AgentChartPoint(label=row.mandi_id.replace("MANDI", "M"), value=round(row.modal_price, 2), unit="₹") for row in top]
         else:
             ranked = sorted(data.crop_summaries, key=lambda item: item.modal_price, reverse=True)
             comparison = "; ".join(f"{item.crop_name} {money(item.modal_price)} ({item.price_gap:+,.0f} vs MSP)" for item in ranked)
             answer = f"Average modal price by crop: {comparison}. {crop} has {summary.below_msp_percentage:.1f}% of records below MSP."
             evidence = [f"{data.totals.price_records:,} price rows across {len(CROPS)} crops", "Source: price_and_msp_cleaned.csv"]
-            chart = [AgentChartPoint(label=item.crop_name, value=item.modal_price, unit="₹") for item in ranked]
+            chart = [AgentChartPoint(label=item.crop_name, value=round(item.modal_price, 2), unit="₹") for item in ranked]
     else:
         intent = "msp-risk"
         below = sorted((row for row in scoped if row.price_gap < 0), key=lambda row: row.price_gap)
@@ -86,6 +134,6 @@ def rule_based_answer(bundle: DatasetBundle, question: str, crop_name: str, date
         else:
             answer = f"None of the {len(scoped)} {scope_label} average below MSP for {crop}. {crop} modal is {money(summary.modal_price)} vs MSP {money(summary.msp)}; {summary.below_msp_percentage:.1f}% of individual records still fall below the floor."
         evidence = [f"{summary.price_records:,} price rows for {crop}", f"{summary.below_msp_records:,} records below MSP · {summary.above_msp_records:,} above", "Source: price_and_msp_cleaned.csv"]
-        chart = [AgentChartPoint(label=row.mandi_id.replace("MANDI", "M"), value=row.price_gap, unit="₹") for row in below[:6]]
+        chart = [AgentChartPoint(label=row.mandi_id.replace("MANDI", "M"), value=round(row.price_gap, 2), unit="₹") for row in below[:6]]
 
     return AgentAnswer(answer=answer, intent=intent, source=data.source, grounded_at=data.fetched_at, evidence=evidence, chart=chart, mode="rules")
