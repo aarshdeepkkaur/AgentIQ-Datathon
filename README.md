@@ -1,596 +1,229 @@
-=========================================
- MANDI-TO-MARKET SUPPLY CHAIN OPTIMIZER
- AgentIQ Datathon - Track 3: AgriTech
-=========================================
-
-An end-to-end agricultural supply chain analytics and decision-support
-system. It brings together mandi arrivals, market prices, government
-MSP data, weather conditions, and transport logistics into a single
-pipeline, exposes the results through a FastAPI backend, and presents
-them through an interactive React dashboard with a built-in AI agent.
-
-Built with: Python, FastAPI, React, Vite, Pandas, NumPy, Recharts
-
-Team: Only Arsh
-Member: Arshdeep Kaur
-Repository: https://github.com/aarshdeepkkaur/AgentIQ-Datathon
-
---------------------------------------------------------------------
- OVERVIEW
---------------------------------------------------------------------
-
-The application is split into a React/Vite frontend and a FastAPI
-backend that communicate over HTTP.
-
-  Component              Purpose                          Local Address
-  ----------------------------------------------------------------------
-  React/Vite frontend     Dashboard and AI-agent UI        http://localhost:3000
-  FastAPI backend         APIs, analytics, agent logic     http://127.0.0.1:8000
-  Swagger docs            API testing and reference        http://127.0.0.1:8000/docs
-
-It's built to help farmers and other supply-chain stakeholders make
-sense of mandi arrivals, prices, MSP, weather, and transport data -
-all of which is usually scattered across separate sources.
-
---------------------------------------------------------------------
- 1. PROBLEM STATEMENT
---------------------------------------------------------------------
-
-Agricultural supply chain data is fragmented by nature: arrivals,
-prices, MSP, weather, and transport records rarely live in one
-place, which makes it hard to see the full picture.
-
-This project pulls five agricultural datasets into a single
-cleaning-and-analytics pipeline, then surfaces the results through a
-FastAPI backend, a React dashboard, and an AI agent - with the goal
-of answering questions such as:
-
-  - Which mandis and crops see the highest arrival volumes?
-  - How do modal market prices compare against government MSP?
-  - Which mandis have records below MSP in the available data?
-  - Where are transport delays occurring?
-  - Is there any relationship between rainfall and arrival volume?
-  - How should missing or inconsistent data be accounted for in
-    these decisions?
-  - What actionable steps can farmers take based on what the data
-    shows?
-
---------------------------------------------------------------------
- 2. PROJECT OVERVIEW
---------------------------------------------------------------------
-
-Mandi-to-Market Supply Chain Optimizer is a Python-based analytics
-and decision-support project built around four layers:
-
-Data cleaning pipeline - turns raw, inconsistent agricultural
-datasets into analysis-ready files. It handles mixed date and
-timestamp formats, inconsistent units, missing or unrecognized
-values, crop-name variations, negative/unrealistic values, and
-large CSV/Excel files, while flagging data-quality issues along the
-way.
-
-Analytics layer - computes arrival totals, crop-wise distributions,
-top mandis by volume, modal price vs. MSP comparisons, below-MSP
-records, transport transit performance, warehouse summaries, and
-rainfall-arrival patterns.
-
-FastAPI backend - exposes this data through routes for the
-dashboard, mandi lookups, alerts, data sync, and AI-agent queries.
-
-React/Vite frontend - an interactive dashboard with charts, filters,
-mandi/crop insights, and a conversational AI-agent panel, all wired
-to the backend APIs.
-
---------------------------------------------------------------------
- 3. KEY FEATURES
---------------------------------------------------------------------
-
-Data engineering:
-  - Cleaning pipeline for five raw datasets
-  - CSV, JSON, and XLSX ingestion
-  - Explicit multi-format date parsing
-  - Unit normalization across datasets
-  - Missing-value handling via NaN
-  - Data-quality flagging and negative-value validation
-  - Chunked CSV processing and streaming Excel reads via openpyxl
-
-Analytics:
-  - Total and crop-wise arrival analysis
-  - Top mandis by volume
-  - Modal price vs. MSP comparison, including below-MSP analysis
-  - Average transit time by warehouse and transport delay analysis
-  - Rainfall vs. arrival analysis
-
-FastAPI backend:
-  - Modular API routes (dashboard, mandi, alerts, data sync, agent)
-  - Swagger documentation
-  - Structured request/response models
-
-AI agent:
-  - Handles natural-language agricultural questions
-  - MSP-risk and below-MSP mandi analysis
-  - Rule-based reasoning, with optional Groq-based LLM support
-  - Data-backed, farmer-oriented recommendations
-
-React/Vite dashboard:
-  - Crop-based filtering and API-connected charts
-  - KPI cards and supply-chain analytics views
-  - AI-agent chat interface
-  - Built with Recharts, Framer Motion, and Lucide React
-
---------------------------------------------------------------------
- 4. SYSTEM ARCHITECTURE
---------------------------------------------------------------------
-
-                         +--------------------------+
-                         |      Raw Datasets        |
-                         |                          |
-                         |  Mandi Arrivals          |
-                         |  Mandi Master            |
-                         |  Price & MSP             |
-                         |  Transport Logistics     |
-                         |  Weather Sensors         |
-                         +------------+-------------+
-                                      |
-                                      v
-                         +--------------------------+
-                         |   Data Cleaning Pipeline |
-                         |                          |
-                         |  Date Parsing            |
-                         |  Unit Normalization      |
-                         |  Missing Values          |
-                         |  Data Quality Flags      |
-                         +------------+-------------+
-                                      |
-                                      v
-                         +--------------------------+
-                         |     Cleaned CSV Data      |
-                         |       data/cleaned/       |
-                         +------------+-------------+
-                                      |
-                                      v
-                         +--------------------------+
-                         |   Analytics and Dataset   |
-                         |       Processing          |
-                         +------------+-------------+
-                                      |
-                                      v
-                         +--------------------------+
-                         |      FastAPI Backend      |
-                         |       Port 8000           |
-                         |                          |
-                         |  Dashboard APIs           |
-                         |  Mandi APIs               |
-                         |  Alert APIs               |
-                         |  Data Sync APIs           |
-                         |  AI Agent APIs            |
-                         +------------+-------------+
-                                      |
-                                      v
-                         +--------------------------+
-                         |    React/Vite Frontend    |
-                         |       Port 3000           |
-                         |                          |
-                         |  KPIs | Charts | Filters  |
-                         |  AI Agent | Insights      |
-                         +--------------------------+
-
---------------------------------------------------------------------
- 5. AI AGENT ARCHITECTURE
---------------------------------------------------------------------
-
-The agent lets users ask supply-chain questions in plain language,
-for example:
-
-  Show the MSP risk for Wheat only.
-  Which mandis are below MSP?
-  What should farmers do when prices are below MSP?
-  Show me the transport delay situation.
-
-Request flow:
-
-  User Question
-        |
-        v
-  React Frontend
-        |
-        v
-  FastAPI Agent Route
-        |
-        v
-  Question / Intent Detection
-        |
-        +------------------------+
-        v                        v
-  Rule-Based Analysis       Optional LLM
-        |                      Support
-        +-----------+------------+
-                    v
-          Data-Backed Agent Answer
-                    |
-                    v
-             React Frontend
-
-The agent's core files:
-
-  lib/agent_llm.py
-  lib/agent_rules.py
-  models/agent.py
-  routers/agent.py
-
-The current implementation supports rule-based analysis over the
-cleaned data, with optional Groq-based LLM support.
-
---------------------------------------------------------------------
- 6. DATASET DESCRIPTION
---------------------------------------------------------------------
-
-Five synthetic datasets, linked through mandi-related identifiers:
-
-  Dataset                            Format   Rows     Description
-  ----------------------------------------------------------------------
-  track3_mandi_arrivals.csv          CSV      25,000   Crop arrival
-                                                         quantities per
-                                                         mandi, mixed units
-  track3_mandi_master.csv            CSV      57       Mandi ID, name,
-                                                         district, state,
-                                                         type, area
-  track3_price_and_msp.json          JSON     12,000   Min, max, modal
-                                                         price, plus MSP
-  track3_transport_logistics.csv     CSV      10,400   Transport
-                                                         timestamps,
-                                                         distance,
-                                                         vehicle, driver,
-                                                         warehouse
-  track3_weather_sensors.xlsx        XLSX     15,000   Temperature,
-                                                         rainfall,
-                                                         humidity
-
-The data is synthetic and intentionally messy: mixed date/timestamp
-formats, inconsistent units, crop-name variants, missing values, and
-varying quality across datasets.
-
---------------------------------------------------------------------
- 7. DATA CLEANING AND PREPROCESSING
---------------------------------------------------------------------
-
-The cleaning script:
-
-  notebooks/01_data_cleaning.py
-
-It reads from data/raw/ and writes cleaned output to data/cleaned/.
-
-  Challenge                            Solution
-  ----------------------------------------------------------------------
-  Mixed date formats                   Explicit date parsing using
-                                        supported formats
-  Incorrect day/month interpretation   Explicit format handling
-  Mixed arrival units                  Convert kg, quintals, tonnes
-                                        into quintals
-  Mixed distance units                 Convert miles into kilometres
-  Mixed temperature units              Convert Fahrenheit into Celsius
-  Mixed rainfall units                 Convert inches into millimetres
-  Missing/unrecognized units           Preserve unconverted values
-                                        as NaN
-  Negative values                      Flag for inspection
-  Large weather Excel file             Stream rows using openpyxl
-  Large arrivals CSV                   Read in chunks using Pandas
-
-Unit normalization standardizes arrival quantities to quintals,
-distance to kilometres, temperature to Celsius, and rainfall to
-millimetres, so downstream analytics work off consistent units.
-
-Data quality checks flag negative arrival quantities, negative
-transit times, missing units, missing weather measurements, and
-unrecognized conversion units - while keeping the raw datasets
-untouched and separate from the cleaned output.
-
---------------------------------------------------------------------
- 8. MISSING VALUE HANDLING
---------------------------------------------------------------------
-
-Missing numerical values are represented as NaN rather than being
-filled in with zero.
-
-  arrival_quantity_qtl
-  --------------------
-  250
-  NaN
-  480
-
-NaN here means the value is unavailable or couldn't be converted -
-not that arrivals were zero. This distinction matters: missing
-arrival data does not mean no produce arrived.
-
-Common causes include missing or unrecognized units, missing
-numerical values, failed unit conversion, and incomplete source
-records. Analytics that use numerical quantities operate only on
-valid, non-null values, so calculated totals reflect successfully
-parsed data and shouldn't be read as complete real-world totals.
-
---------------------------------------------------------------------
- 9. ANALYTICS AND BUSINESS INSIGHTS
---------------------------------------------------------------------
-
-Core analytics logic lives in lib/analytics.py, with additional
-processing in notebooks/02_analytics.py. It produces:
-
-  - Total and crop-wise arrival volume
-  - Top mandis by volume
-  - Average modal price and average MSP
-  - Records below MSP
-  - Average transit time and delayed transport trips
-  - Daily rainfall and arrival trends
-  - Warehouse transit performance
-
-Generated files:
-
-  data/cleaned/below_msp_by_crop.csv
-  data/cleaned/crop_distribution.csv
-  data/cleaned/daily_arrivals.csv
-  data/cleaned/daily_rainfall.csv
-  data/cleaned/top_mandis.csv
-  data/cleaned/warehouse_transit.csv
-
---------------------------------------------------------------------
- 10. FASTAPI BACKEND
---------------------------------------------------------------------
-
-Entry point: server.py
-
-The backend is built with FastAPI and uses a main /api router
-prefix. Routes are organized under routers/:
-
-  routers/agent.py
-  routers/alerts.py
-  routers/dashboard.py
-  routers/data_sync.py
-  routers/mandi.py
-
-Request/response models live under models/. Supporting logic is in:
-
-  lib/datasets.py
-  lib/analytics.py
-  lib/db.py
-  lib/agent_rules.py
-  lib/agent_llm.py
-
-The backend reads and processes cleaned data, runs analytics, serves
-structured responses to the React dashboard, provides mandi and alert
-information, supports AI-agent queries, and connects the frontend to
-the underlying data and agent logic.
-
-  Backend: http://127.0.0.1:8000
-  Docs:    http://127.0.0.1:8000/docs
-
-### API Routes
-
-The main API prefix is:
-
-  /api
-
-Available routes:
-
-  GET     /api/
-          Basic API root response
-
-  POST    /api/status
-          Create/store a status check
-
-  GET     /api/status
-          Get status checks
-
-  POST    /api/agent/ask
-          Ask the AI agent a natural-language question
-
-  POST    /api/agent/ask/stream
-          Ask the AI agent and receive a streamed response
-
-  GET     /api/agent/history/{session_id}
-          Get conversation history for a session
-
-  GET     /api/alerts
-          Get supply-chain alerts
-
-  GET     /api/dashboard
-          Get dashboard analytics and KPI data
-
-  GET     /api/data_sync
-          Get data synchronization information
-
-  GET     /api/mandi/{mandi_id}
-          Get details for a specific mandi
-
-Interactive API documentation:
-
-  http://127.0.0.1:8000/docs
-
-OpenAPI specification:
-
-  http://127.0.0.1:8000/openapi.json
-
---------------------------------------------------------------------
- 11. REACT/VITE FRONTEND
---------------------------------------------------------------------
-
-Located in frontend/, built with React, Vite, Recharts, Framer
-Motion, and Lucide React.
-
-It handles dashboard KPIs, charts and analytics views, crop-based
-filtering, mandi information, the AI-agent interface, and all API
-communication with the backend.
-
-Commands:
-
-  npm run dev -- --port 3000     start dev server
-  npm run build                  production build
-  npm run lint                   lint
-  npm run preview                preview production build
-
-Frontend address: http://localhost:3000
-
---------------------------------------------------------------------
- 12. PROJECT STRUCTURE
---------------------------------------------------------------------
-
-AgentIQ-Datathon/
-|
-|-- data/
-|   |-- raw/
-|   |   `-- Original agricultural datasets
-|   |
-|   `-- cleaned/
-|       |-- mandi_arrivals_cleaned.csv
-|       |-- mandi_master_cleaned.csv
-|       |-- price_and_msp_cleaned.csv
-|       |-- transport_cleaned.csv
-|       |-- weather_cleaned.csv
-|       |-- below_msp_by_crop.csv
-|       |-- crop_distribution.csv
-|       |-- daily_arrivals.csv
-|       |-- daily_rainfall.csv
-|       |-- top_mandis.csv
-|       `-- warehouse_transit.csv
-|
-|-- frontend/
-|   |-- package.json
-|   |-- package-lock.json
-|   |-- vite.config.js
-|   |-- index.html
-|   |-- eslint.config.js
-|   `-- src/
-|       `-- React frontend source files
-|
-|-- lib/
-|   |-- agent_llm.py
-|   |-- agent_rules.py
-|   |-- analytics.py
-|   |-- datasets.py
-|   |-- db.py
-|   `-- __init__.py
-|
-|-- models/
-|   |-- agent.py
-|   |-- alerts.py
-|   |-- dashboard.py
-|   |-- data_sync.py
-|   |-- mandi.py
-|   `-- __init__.py
-|
-|-- notebooks/
-|   |-- 01_data_cleaning.py
-|   |-- 02_analytics.py
-|   `-- data_helpers.py
-|
-|-- routers/
-|   |-- agent.py
-|   |-- alerts.py
-|   |-- dashboard.py
-|   |-- data_sync.py
-|   |-- mandi.py
-|   `-- __init__.py
-|
-|-- server.py
-|-- requirements.txt
-|-- DATA_DICTIONARY.md
-|-- test_groq.py
-|-- transport_sample.csv
-|-- .env
-|-- .gitignore
-`-- README.md
-
---------------------------------------------------------------------
- 13. INSTALLATION AND SETUP
---------------------------------------------------------------------
-
-Prerequisites: Python 3, Node.js and npm, Git, and pip.
-
-1) Clone the repository
-
-  git clone https://github.com/aarshdeepkkaur/AgentIQ-Datathon.git
-  cd AgentIQ-Datathon
-
-2) Create and activate a virtual environment
-
-  Windows:
-    python -m venv venv
-    .\venv\Scripts\Activate.ps1
-
-  Linux/macOS:
-    python -m venv venv
-    source venv/bin/activate
-
-3) Install backend dependencies
-
-  pip install -r requirements.txt
-
-4) Install frontend dependencies
-
-  cd frontend
-  npm install
-
-5) Run the data cleaning pipeline
-
-  From the project root:
-    python notebooks\01_data_cleaning.py
-
-  This reads raw datasets from data/raw/ and writes cleaned files to
-  data/cleaned/.
-
-6) Run the analytics script
-
-  python notebooks\02_analytics.py
-
-  This generates the summary files used by the analytics and
-  dashboard layers.
-
-7) Start the FastAPI backend
-
-  In a terminal:
-    cd D:\AgentIQ-Datathon
-    .\venv\Scripts\Activate.ps1
-
-  Set the numerical-library thread variables:
-    $env:OPENBLAS_NUM_THREADS="1"
-    $env:OMP_NUM_THREADS="1"
-    $env:MKL_NUM_THREADS="1"
-    $env:NUMEXPR_NUM_THREADS="1"
-
-  Start the server:
-    uvicorn server:app --host 127.0.0.1 --port 8000 --reload
-
-  Backend:     http://127.0.0.1:8000
-  Swagger:     http://127.0.0.1:8000/docs
-
-  Keep this terminal running.
-
-8) Start the React/Vite frontend
-
-  In a second terminal:
-    cd D:\AgentIQ-Datathon\frontend
-    npm run dev -- --port 3000
-
-  Frontend: http://localhost:3000, communicating with the backend
-  on port 8000.
-
---------------------------------------------------------------------
- 14. API TESTING
---------------------------------------------------------------------
-
-The FastAPI backend can be tested through the Swagger UI:
-
-  http://127.0.0.1:8000/docs
-
-### AI-Agent Request
-
-The AI-agent endpoint is:
-
-  POST /api/agent/ask
-
-It accepts a natural-language query and related parameters, as
-defined in models/agent.py.
-
-Example request:
+# Mandi-to-Market Supply Chain Optimizer
+
+**AgentIQ Datathon — Track 3: AgriTech**
+
+An agricultural supply-chain analytics and decision-support system. It cleans five raw mandi datasets into a consistent set of tables, computes arrival, price/MSP, transport and weather analytics over them, and serves the results through a FastAPI backend to a React dashboard with a grounded AI agent.
+
+**Team:** Only Arsh
+**Member:** Arshdeep Kaur
+**Repository:** https://github.com/aarshdeepkkaur/AgentIQ-Datathon
+
+---
+
+## Architecture
+
+```text
+data/raw/  ──▶  notebooks/01_data_cleaning.py  ──▶  data/cleaned/
+                                                        │
+                                                        ▼
+                                        lib/datasets.py + lib/analytics.py
+                                                        │
+                                                        ▼
+                                      FastAPI backend (server.py, /api/*)
+                                                        │
+                                                        ▼
+                                    React/Vite dashboard + AgentIQ chat panel
+```
+
+| Layer | Technology | Local address |
+| --- | --- | --- |
+| Frontend | React 19 + TypeScript + Vite | `http://localhost:3000` |
+| Backend | FastAPI + Uvicorn | `http://127.0.0.1:8000` |
+| API docs | Swagger UI | `http://127.0.0.1:8000/docs` |
+| Persistence | MongoDB (agent chat history) | configured via `.env` |
+
+The Vite dev server proxies `/api` to `http://127.0.0.1:8000`, so the frontend needs no backend URL configuration in development.
+
+---
+
+## Problem Statement
+
+Mandi arrivals, market prices, MSP, weather readings and transport records normally live in separate files with inconsistent units, date formats and crop names. This project consolidates them and makes them queryable, so a user can ask:
+
+- Which mandis and crops have the highest arrival volumes?
+- How do modal prices compare against MSP, and which mandis sit below it?
+- Where are transport delays concentrated, and which warehouse clears fastest?
+- Is there any association between rainfall and arrival volume?
+- How much of the data is actually usable after cleaning?
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+| Requirement | Notes |
+| --- | --- |
+| Python 3.11+ | https://www.python.org/downloads/ |
+| Node.js 20+ and npm | https://nodejs.org/ |
+| Git | https://git-scm.com/downloads |
+| MongoDB | Required. A local install or a free MongoDB Atlas cluster both work. |
+| LLM API key | **Optional.** Only needed for the LLM agent mode; see [Using the AI Agent](#using-the-ai-agent). |
+
+### 1. Clone the project
+
+```powershell
+git clone https://github.com/aarshdeepkkaur/AgentIQ-Datathon.git
+cd AgentIQ-Datathon
+```
+
+### 2. Create and activate the virtual environment
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+If PowerShell blocks the activation script with an execution-policy error, either allow scripts for the current session only:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+or use Command Prompt instead, where activation is:
+
+```bat
+venv\Scripts\activate.bat
+```
+
+### 3. Install backend dependencies
+
+```powershell
+pip install -r requirements.txt
+```
+
+`requirements.txt` is a full environment freeze and does not currently list every package the backend imports at runtime. Install the remainder explicitly:
+
+```powershell
+pip install motor pymongo openpyxl
+```
+
+`motor` and `pymongo` are needed by `lib/db.py`, and `openpyxl` by the weather-sheet step in `notebooks/01_data_cleaning.py`. If `pip` reports an encoding error while reading `requirements.txt`, re-save the file as UTF-8 and retry.
+
+### 4. Create the `.env` file
+
+Create a file named `.env` in the project root. The backend calls `os.environ["MONGO_URL"]` and `os.environ["DB_NAME"]` directly, so **it will not start without these two values**.
+
+```env
+MONGO_URL=mongodb://localhost:27017
+DB_NAME=agentiq
+```
+
+Optional variables, all with working defaults if omitted:
+
+```env
+CORS_ORIGINS=http://localhost:3000
+EMERGENT_LLM_KEY=your_llm_api_key_here
+AGENTIQ_DATA_REPO_BASE=https://raw.githubusercontent.com/aarshdeepkkaur/AgentIQ-Datathon/main/data/cleaned
+```
+
+`.env` is listed in `.gitignore` and must never be committed. Use your own credentials.
+
+### 5. Run the backend
+
+```powershell
+uvicorn server:app --host 127.0.0.1 --port 8000 --reload
+```
+
+| URL | Purpose |
+| --- | --- |
+| `http://127.0.0.1:8000/api/` | API status check |
+| `http://127.0.0.1:8000/docs` | Swagger UI |
+| `http://127.0.0.1:8000/openapi.json` | OpenAPI specification |
+
+Leave this terminal running.
+
+If you hit OpenBLAS or NumPy thread errors on Windows, set these before starting Uvicorn:
+
+```powershell
+$env:OPENBLAS_NUM_THREADS="1"
+$env:OMP_NUM_THREADS="1"
+$env:MKL_NUM_THREADS="1"
+$env:NUMEXPR_NUM_THREADS="1"
+```
+
+### 6. Run the frontend
+
+Open a **second terminal**:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The port and the `/api` proxy are already set in `frontend/vite.config.ts`, so no extra flags are needed. Open `http://localhost:3000`.
+
+### Both terminals at a glance
+
+| Terminal | Directory | Command | Purpose |
+| --- | --- | --- | --- |
+| 1 | Project root | `uvicorn server:app --host 127.0.0.1 --port 8000 --reload` | Backend, APIs, AI agent |
+| 2 | `frontend/` | `npm run dev` | React dashboard |
+
+### Frontend scripts
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the dev server on port 3000 |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | Lint with oxlint |
+| `npm run typecheck` | Type-check without emitting |
+
+### Regenerating the cleaned data (optional)
+
+`data/cleaned/` is already committed, so the app runs without this step. To rebuild it from the raw files:
+
+```powershell
+python notebooks\01_data_cleaning.py
+python notebooks\02_analytics.py
+```
+
+---
+
+## Using the Dashboard
+
+1. Start the backend, then the frontend, and open `http://localhost:3000`.
+2. Pick a crop from the **Tracking crop** selector. Six crops are supported: Wheat, Rice, Maize, Cotton, Mustard and Sugarcane.
+3. Narrow the view with the **State**, **Mandi**, **Date window** and **Risk level** filters, or search mandis by name. Filters apply across every panel; **Reset** clears them.
+4. Read the KPI strip for headline arrival, price, MSP and transport figures.
+5. Explore the central stage, which switches between an orbit view of mandi hubs and a satellite map. Selecting a hub updates the surrounding panels.
+6. Review the four insight cards (crop, mandi, logistics, weather) and the analytics charts beneath them.
+7. Browse the mandi table and open any row for its detail page at `/mandi/:mandiId`.
+8. Check the alerts bell in the header for supply-chain alerts on the current crop and window.
+9. Read the data-quality note in the footer — it reports live missing-data percentages for the current payload.
+10. Click **Ask AgentIQ** (bottom-right, or in the sidebar and footer) to open the agent chat drawer.
+
+---
+
+## Using the AI Agent
+
+The agent panel opens as a drawer over the dashboard. It sends your question, the selected crop and the active date window to the FastAPI backend, which answers using the cleaned datasets rather than free-form generation.
+
+### Two answering modes
+
+| Mode | When it is used | How it works |
+| --- | --- | --- |
+| `rules` | Default; always available | Intent detection over the question, then a fixed pandas analysis. Recognised intents include MSP risk, top mandis by modal price, crop comparison, route health and weather impact. |
+| `llm` | Only when `EMERGENT_LLM_KEY` is set | An Anthropic Claude model writes a pandas query over the loaded DataFrames, the query runs in a restricted namespace with a timeout, and the model explains the result. |
+
+The LLM mode is **optional**. Without the key, `llm_enabled()` returns false and the agent uses rule-based answers; the LLM path also falls back to rules on any failure. Every response carries a `mode` field so you can see which path produced it.
+
+### Example questions
+
+```text
+Show the MSP risk for Wheat only.
+Which mandis have records below MSP?
+What should farmers do when prices are below MSP?
+Show me the transport delay situation.
+Which crop has the highest arrival volume?
+What is the relationship between rainfall and arrivals?
+```
+
+### Request format
+
+From `models/agent.py`. Only `query` is required; `crop_name` defaults to `Wheat`.
 
 ```json
 {
@@ -602,120 +235,252 @@ Example request:
 }
 ```
 
+`query` is capped at 500 characters and `date_from` / `date_to` are `YYYY-MM-DD` strings.
+
+### Testing through Swagger
+
+1. Open `http://127.0.0.1:8000/docs`.
+2. Find **POST `/api/agent/ask`**.
+3. Click **Try it out**.
+4. Paste the JSON above.
+5. Click **Execute** and read the response body.
+
+### Testing from PowerShell
+
+```powershell
+$body = @{ query = "Which mandis have records below MSP?"; crop_name = "Wheat" } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/agent/ask" -Method Post -Body $body -ContentType "application/json"
+```
+
+### Streaming endpoint
+
+`POST /api/agent/ask/stream` accepts the same request body and returns Server-Sent Events (`data: <json>` frames). This is the endpoint the dashboard chat drawer actually uses, so answers appear incrementally. `POST /api/agent/ask` returns the same analysis as a single JSON response and is the easier one to test by hand.
+
 ---
 
---------------------------------------------------------------------
- 15. TECHNOLOGY STACK
---------------------------------------------------------------------
+## API Reference
 
-  Technology       Purpose
-  ----------------------------------------------------------------
-  Python           Backend and data-processing language
-  FastAPI          Backend API framework
-  Uvicorn          ASGI server
-  Pandas           Data cleaning and analysis
-  NumPy            Numerical operations
-  OpenPyXL         Excel processing
-  Plotly           Analytics visualization support
-  Statsmodels      Statistical trendline support
-  React            Frontend user interface
-  Vite             Frontend development and build tool
-  Recharts         React charts
-  Framer Motion    Frontend animations
-  Lucide React     Frontend icons
-  Groq             Optional LLM support for the AI agent
+All routes are mounted under the `/api` prefix.
 
-Python and Pandas/NumPy were chosen for their strength in data
-cleaning and numerical work; FastAPI for fast, well-documented APIs;
-and React with Vite for a responsive, component-based frontend with
-a quick development loop. OpenPyXL enables row-wise streaming of the
-large weather Excel file, Recharts handles the dashboard's charts,
-and Groq provides optional LLM-backed responses for the AI agent.
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/api/` | API status check |
+| GET | `/api/dashboard` | Dashboard analytics payload |
+| GET | `/api/mandi/{mandi_id}` | Detail for a single mandi |
+| GET | `/api/alerts` | Supply-chain alerts |
+| GET | `/api/data-sync` | Sync status for the cleaned datasets |
+| POST | `/api/agent/ask` | Ask the agent, single JSON response |
+| POST | `/api/agent/ask/stream` | Ask the agent, Server-Sent Events |
+| GET | `/api/agent/history/{session_id}` | Stored conversation history |
+| GET | `/api/status` | Status-check records |
+| POST | `/api/status` | Create a status-check record |
 
---------------------------------------------------------------------
- 16. DATA DICTIONARY
---------------------------------------------------------------------
+`/api/dashboard` and `/api/alerts` accept `crop`, `date_from` and `date_to` query parameters; `/api/dashboard` also accepts `refresh`. An unrecognised crop returns 404 with the list of supported crops.
 
-Column-level documentation for the raw and cleaned datasets is in
-DATA_DICTIONARY.md.
+Full request and response schemas are browsable at `http://127.0.0.1:8000/docs`.
 
---------------------------------------------------------------------
- 17. DATA QUALITY AND LIMITATIONS
---------------------------------------------------------------------
+---
 
-Missing arrival quantities - Some records lack usable quantities due
-to missing values or units. The total arrival KPI reflects
-successfully parsed quantities only.
+## Data Pipeline
 
-Weather conversion gaps - Temperature and rainfall values stay
-missing (rather than being guessed at) when the source unit is
-absent or unrecognized.
+`lib/datasets.py` loads the five cleaned CSVs from the GitHub raw URL first and falls back to the bundled copies in `data/cleaned/` when that is unavailable, so the dashboard works offline. The active source is reported in the dashboard footer.
 
-Crop name aliasing - Some regional crop names (Sarso, Narma, Ganne,
-Makki, Chawal, Dhaan, among others) may not be fully merged into
-standard categories, which can split crop-distribution values across
-aliases.
+### Cleaning
 
-Transit thresholds - A trip is flagged as delayed past 24 hours, and
-transit times over 168 hours are treated as unrealistic for
-data-quality review. These thresholds are project-defined, not
-verified industry SLAs.
+`notebooks/01_data_cleaning.py` reads `data/raw/` and writes `data/cleaned/`, handling:
 
-Synthetic data - The datasets are synthetic and may contain
-unrealistic geographic or market relationships. The current version
-does not fetch live mandi prices or live market data. Findings should
-be read as exploratory analytics on this dataset, not as verified
-real-world agricultural statistics.
+- Mixed date and timestamp formats, parsed with explicit format strings
+- Mixed units — arrivals to quintals, distance to kilometres, temperature to Celsius, rainfall to millimetres
+- CSV, JSON and XLSX inputs, with the large weather workbook streamed row-wise
+- Crop-name variations mapped to six canonical names
+- Negative and invalid values, retained but flagged for inspection
+- Missing or unrecognised units, left as `NaN` rather than guessed
 
-Correlation, not causation - The rainfall-arrivals relationship
-reflects an association in the data, not a proven causal effect.
+### What `NaN` means here
 
---------------------------------------------------------------------
- 18. FUTURE SCOPE
---------------------------------------------------------------------
+`NaN` means the value is missing or could not be converted. **It does not mean zero.** A missing arrival quantity does not mean no produce arrived at that mandi.
 
-  - Integrate live mandi and market-price data
-  - Add real-time data synchronization
-  - Improve crop-name alias mapping and missing-data reporting
-  - Add crop-price forecasting and weather-based risk prediction
-  - Improve transport route optimization and add warehouse
-    recommendations
-  - Add multilingual and voice-based AI-agent interaction
-  - Improve farmer-specific recommendations
-  - Deploy to cloud infrastructure
-  - Add authentication and user-specific dashboards
-  - Add automated alerts for price crashes and transport delays
+Analytics therefore drop nulls before summing or averaging, which means totals reflect successfully parsed records only and should not be read as complete real-world figures. Roughly 42% of arrival rows have no usable quantity after cleaning, and around 20% of price rows have no MSP; the dashboard footer reports the exact live percentages.
 
---------------------------------------------------------------------
- 19. LEARNING OUTCOMES
---------------------------------------------------------------------
+### Datasets
 
-This project involved working through real-world-style data cleaning
-challenges: handling multiple formats, explicit date parsing, unit
-conversion, missing-value handling, and data validation with quality
-flags. On top of that, it covered Pandas-based analytics, FastAPI
-backend development and API design, a full React/Vite frontend with
-interactive charts, AI-agent integration, and tying all of these
-pieces together into one working system.
+| File | Format | Contents |
+| --- | --- | --- |
+| `track3_mandi_master.csv` | CSV | 57 mandis: id, name, district, state, type, area |
+| `track3_mandi_arrivals.csv` | CSV | Arrival quantities per mandi, crop and date |
+| `track3_price_and_msp.json` | JSON | Min, max and modal price plus MSP |
+| `track3_transport_logistics.csv` | CSV | Trips with timestamps, distance, vehicle, driver, warehouse |
+| `track3_weather_sensors.xlsx` | XLSX | Temperature, rainfall and humidity readings |
 
---------------------------------------------------------------------
- 20. TEAM
---------------------------------------------------------------------
+Column-level documentation is in [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md). Field notes on the raw files are in `data/raw/track3_dataset_notes.txt`.
 
-Only Arsh - Arshdeep Kaur
-Role: data cleaning, analytics, backend development, frontend
-development, AI-agent integration, and overall project integration.
+---
 
---------------------------------------------------------------------
- 21. LICENSE
---------------------------------------------------------------------
+## Analytics and KPIs
 
-Developed for the AgentIQ Datathon. Add a license here if you choose
-to publish the project under one.
+`lib/analytics.py` computes every figure the dashboard and agent display, recalculated against the selected crop and date window on each request.
 
---------------------------------------------------------------------
- ACKNOWLEDGEMENT
---------------------------------------------------------------------
+### Headline KPIs
 
-Built as part of the AgentIQ Datathon. Thanks for taking the time to
-review it.
+| Group | Metrics |
+| --- | --- |
+| Network totals | Total arrivals (qtl), average modal price, average MSP, below-MSP percentage, average transit hours, delay rate, active mandis, record counts per dataset, data date range |
+| Crop summary | Modal price, MSP, price gap, arrivals, below-MSP percentage, above/below-MSP record counts, average transit hours, delay rate, trend percentage, season and outlook |
+| Per mandi | Modal price, MSP, price gap, arrivals, farmer count, below-MSP percentage, transit hours, delay rate, trip count, destination warehouse, weather, risk level, coordinates |
+| Warehouses | Average transit hours, delay rate, trip count and average distance per destination |
+| Weather | Average and latest temperature, rainfall and humidity, plus rainfall-to-arrivals correlation |
+| Data quality | Percentage of missing arrival quantities, invalid flags, unconverted temperature and rainfall, invalid transit times and missing MSP |
+
+### Series behind the charts
+
+- **Price trend** — modal price, MSP and arrivals at daily, weekly and monthly granularity
+- **Weather series** — temperature, rainfall, humidity and arrivals over time
+- **MSP distribution** — above- and below-MSP record counts per crop
+
+### Derived classifications
+
+A trip counts as **delayed** when `transit_hours > 24`.
+
+Each mandi is scored into a **risk level** used by the dashboard filter:
+
+| Level | Condition |
+| --- | --- |
+| High | Price below MSP with at least 50% below-MSP records, or transit above 18 hours |
+| Medium | Price below MSP, or at least 40% below-MSP records, or transit above 15 hours |
+| Low | Everything else |
+
+Both thresholds are project-defined for this analysis, not industry standards.
+
+### Precomputed summary files
+
+`notebooks/02_analytics.py` writes six standalone summaries into `data/cleaned/` for offline inspection. The live API computes its own figures and does not read these:
+
+```text
+top_mandis.csv
+crop_distribution.csv
+warehouse_transit.csv
+daily_arrivals.csv
+daily_rainfall.csv
+below_msp_by_crop.csv
+```
+
+---
+
+## Project Structure
+
+```text
+AgentIQ-Datathon/
+├── data/
+│   ├── raw/                      # Original Track 3 datasets
+│   └── cleaned/                  # Cleaned tables + analytics summaries
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── dashboard/        # KPI strip, charts, map, filters, agent drawer
+│   │   │   └── ui/               # Shared UI primitives
+│   │   ├── lib/                  # api.ts, queryClient.ts, session.ts, utils
+│   │   ├── pages/                # Home.tsx, MandiDetail.tsx
+│   │   ├── data/types.ts
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── public/
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── components.json
+│   ├── .oxlintrc.json
+│   └── tsconfig*.json
+├── lib/
+│   ├── agent_llm.py              # Optional LLM-backed agent path
+│   ├── agent_rules.py            # Rule-based agent path
+│   ├── analytics.py
+│   ├── datasets.py
+│   ├── db.py
+│   └── __init__.py
+├── models/                       # Pydantic request/response models
+│   ├── agent.py
+│   ├── alerts.py
+│   ├── dashboard.py
+│   ├── data_sync.py
+│   ├── mandi.py
+│   └── __init__.py
+├── notebooks/
+│   ├── 01_data_cleaning.py
+│   ├── 02_analytics.py
+│   └── data_helpers.py
+├── routers/                      # FastAPI route modules
+│   ├── agent.py
+│   ├── alerts.py
+│   ├── dashboard.py
+│   ├── data_sync.py
+│   ├── mandi.py
+│   └── __init__.py
+├── server.py                     # Backend entry point
+├── requirements.txt
+├── DATA_DICTIONARY.md
+├── transport_sample.csv
+├── .gitignore
+└── README.md
+```
+
+---
+
+## Technology Stack
+
+### Backend
+
+| Technology | Purpose |
+| --- | --- |
+| Python | Backend and data processing |
+| FastAPI | API framework |
+| Uvicorn | ASGI server |
+| Pandas | Data cleaning and analytics |
+| NumPy | Numerical operations |
+| OpenPyXL | Excel processing |
+| Motor / PyMongo | MongoDB driver for agent chat history |
+| httpx | Fetching cleaned datasets over HTTP |
+| Pydantic | Request and response validation |
+| python-dotenv | Environment configuration |
+
+### Frontend
+
+| Technology | Purpose |
+| --- | --- |
+| React 19 | UI framework |
+| TypeScript | Type safety |
+| Vite | Dev server and build tooling |
+| Tailwind CSS v4 | Styling |
+| TanStack Query | Server-state and data fetching |
+| React Router | Routing |
+| Recharts | Charts |
+| Leaflet / React Leaflet | Map view |
+| Motion | Animations |
+| Lucide React | Icons |
+| Sonner | Toast notifications |
+| oxlint | Linting |
+
+---
+
+## Limitations and Data-Quality Notes
+
+- **The datasets are synthetic.** They are Datathon-provided files and may contain unrealistic geographic or market relationships. Treat all findings as exploratory analysis of this dataset, not verified agricultural statistics.
+- **No live market data.** Prices and arrivals come from the bundled files; the project does not fetch live mandi prices from any government or market feed.
+- **Missing is not zero.** Around 42% of arrival records have no usable quantity after cleaning. Totals cover parsed records only.
+- **Correlation is not causation.** The rainfall-to-arrivals correlation describes an association within the data. The weather sensors are also not linked to specific mandis, which further limits interpretation.
+- **Thresholds are project-defined.** A trip counts as delayed above 24 transit hours. This is our own choice for this analysis, not an industry service-level agreement.
+- **Crop aliasing is partial.** Regional names are mapped onto six canonical crops, so any unmapped alias can split a crop's totals.
+- **LLM mode is optional and unverified without a key.** Without `EMERGENT_LLM_KEY`, every answer comes from the rule-based path.
+- **MongoDB is required to boot.** Chat history persistence is not optional in the current code.
+
+---
+
+## Team
+
+**Only Arsh** — Arshdeep Kaur
+Data cleaning, analytics, backend development, frontend development, AI-agent integration and project assembly.
+
+---
+
+## License
+
+Developed for the AgentIQ Datathon. No license is currently applied.
