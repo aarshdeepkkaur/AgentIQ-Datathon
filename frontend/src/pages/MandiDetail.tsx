@@ -45,7 +45,7 @@ export default function MandiDetail() {
 
         const id = mandiId || "MANDI001";
 
-        const response = await fetch(`/api/mandi/${id}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || "/api"}/mandi/${id}`);
 
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
