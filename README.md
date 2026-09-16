@@ -293,7 +293,8 @@ Full request and response schemas are browsable at `http://127.0.0.1:8000/docs`.
 - Mixed units — arrivals to quintals, distance to kilometres, temperature to Celsius, rainfall to millimetres
 - CSV, JSON and XLSX inputs, with the large weather workbook streamed row-wise
 - Crop-name variations mapped to six canonical names
-- Negative and invalid values, retained but flagged for inspection
+- Negative arrival quantities and negative transit times, set to `NaN` and flagged (`invalid_negative_quantity`, `invalid_negative_transit`)
+- Transit times above 168 hours, treated as unrealistic, set to `NaN` and flagged (`invalid_unrealistic_transit`)
 - Missing or unrecognised units, left as `NaN` rather than guessed
 
 ### What `NaN` means here
@@ -366,6 +367,30 @@ below_msp_by_crop.csv
 
 ---
 
+## Data Cleaning Evidence
+
+The cleaning pipeline is reproducible: running it against the same raw files always produces the same cleaned output.
+
+- Script: [`notebooks/01_data_cleaning.py`](notebooks/01_data_cleaning.py)
+- Raw data: `data/raw/`
+- Cleaned data: `data/cleaned/`
+
+### Raw versus cleaned row counts
+
+| Dataset | Raw rows | Cleaned rows | Removed | Reason |
+| --- | ---: | ---: | ---: | --- |
+| `mandi_master` | 60 | 57 | 3 | Duplicate `mandi_id`, deduplicated |
+| `mandi_arrivals` | 25,750 | 25,000 | 750 | Exact duplicate rows, dropped |
+| `price_and_msp` | 12,000 | 12,000 | 0 | No deduplication applied |
+| `transport_logistics` | 10,400 | 10,000 | 400 | Exact duplicate rows, dropped |
+| `weather_sensors` | 15,000 | 15,000 | 0 | No deduplication applied |
+
+No rows are removed for missing or invalid values — those are converted, flagged or set to `NaN` in place, as described above. Only duplicate rows are dropped entirely.
+
+The full breakdown, including how each duplicate count was verified, is in the [Data Cleaning Report](evidence/data_cleaning_report.md). Field-level definitions are in the [Data Dictionary](DATA_DICTIONARY.md).
+
+---
+
 ## Project Structure
 
 ```text
@@ -373,6 +398,8 @@ AgentIQ-Datathon/
 ├── data/
 │   ├── raw/                      # Original Track 3 datasets
 │   └── cleaned/                  # Cleaned tables + analytics summaries
+├── evidence/
+│   └── data_cleaning_report.md   # Raw vs. cleaned row-count breakdown
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
