@@ -464,11 +464,16 @@ def clean_temperature(value, unit):
 
 
 def clean_rainfall(value, unit):
+    """
+    Convert rainfall values to millimetres.
+
+    Negative rainfall values are invalid and become NaN.
+    """
 
     if pd.isna(value):
         return np.nan
 
-    value_str = str(value)
+    value_str = str(value).strip()
 
     number_match = re.search(
         r"-?\d+(?:\.\d+)?",
@@ -480,18 +485,25 @@ def clean_rainfall(value, unit):
 
     rainfall = float(number_match.group())
 
-    unit_text = "" if pd.isna(unit) else str(unit).lower()
+    # Negative rainfall is invalid
+    if rainfall < 0:
+        return np.nan
+
+    unit_text = "" if pd.isna(unit) else str(unit).strip().lower()
 
     if (
         "inch" in unit_text
         or unit_text in ["in", "in."]
     ):
-        return rainfall * 25.4
+        rainfall = rainfall * 25.4
 
-    if "mm" in unit_text:
-        return rainfall
+    elif "mm" in unit_text:
+        rainfall = rainfall
 
-    return np.nan
+    else:
+        return np.nan
+
+    return rainfall
 
 
 # Explicit datetime formats found in the raw weather timestamps
@@ -604,6 +616,18 @@ def clean_weather():
         in zip(df["rainfall"], df["rain_unit"])
     ]
 
+    # Quality flag for invalid rainfall values
+    df["weather_quality_flag"] = pd.NA
+
+    invalid_rainfall_mask = (
+        pd.to_numeric(df["rainfall"], errors="coerce") < 0
+    )
+
+    df.loc[
+        invalid_rainfall_mask,
+        "weather_quality_flag"
+    ] = "invalid_negative_rainfall"
+
     # Humidity
     df["humidity_percent"] = pd.to_numeric(
         df["humidity_percent"],
@@ -626,6 +650,10 @@ def clean_weather():
     print(
         f"Missing rainfall values: "
         f"{df['rainfall_mm'].isna().sum()}"
+    )
+    print(
+        f"Invalid negative rainfall fixed: "
+        f"{invalid_rainfall_mask.sum()}"
     )
     print(f"Saved to: {output}")
 
