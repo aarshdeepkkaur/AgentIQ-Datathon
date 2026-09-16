@@ -122,7 +122,7 @@ Contains transport and mandi-to-warehouse logistics records.
 | `departure_time_clean`  | Standardized departure timestamp.                                                                                                                                 | Date/time |
 | `arrival_time_clean`    | Standardized arrival timestamp.                                                                                                                                   | Date/time |
 | `distance_km`           | Distance converted to kilometres.                                                                                                                                 | Numeric   |
-| `quality_flag`          | Data-quality status. `valid` indicates no detected negative-transit issue; `invalid_negative_transit` indicates a negative transit time was detected and removed. | String    |
+| `quality_flag`          | Data-quality status. `valid` = no issue detected; `invalid_negative_transit` = a negative transit time was detected and nulled; `invalid_unrealistic_transit` = transit time exceeded 168 hours and was nulled. | String    |
 | `vehicle_no_clean`      | Standardized vehicle registration value.                                                                                                                          | String    |
 
 ### Transport notes
@@ -133,6 +133,7 @@ Contains transport and mandi-to-warehouse logistics records.
 * Distance is converted to kilometres when the source unit is recognized.
 * Missing or unrecognized distance units may result in missing `distance_km`.
 * The current cleaning threshold treats transit times above 168 hours as unrealistic.
+* Transit times exceeding 168 hours are treated as unrealistic and set to missing.
 
 ---
 
